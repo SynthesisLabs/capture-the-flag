@@ -1,3 +1,4 @@
 .idea/
 target/
 capture-the-falg.imo
+src/main/resources/config.yml
