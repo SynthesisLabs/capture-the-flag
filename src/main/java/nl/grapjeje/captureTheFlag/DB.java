@@ -32,8 +32,8 @@ public class DB {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, user, pass);
             System.out.println("Connected to database");
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -52,8 +52,8 @@ public class DB {
             Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, user, pass);
             System.out.println("Connection closed");
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }
