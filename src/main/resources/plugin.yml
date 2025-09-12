@@ -1,0 +1,7 @@
+name: capture-the-flag
+version: '1.0-SNAPSHOT'
+main: nl.grapjeje.captureTheFlag.CaptureTheFlag
+api-version: '1.21'
+authors: [ GrapJeje ]
+description: A Capture The Flag Plugin
+website: grapjeje.nl
