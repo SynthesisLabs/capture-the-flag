@@ -6,7 +6,9 @@ import nl.grapjeje.captureTheFlag.DB;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
+import nl.grapjeje.captureTheFlag.exeptions.PlayerNotFoundException;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
@@ -18,7 +20,7 @@ import java.util.UUID;
 public class CtfPlayer {
     private final static List<CtfPlayer> players = new ArrayList<>();
 
-    private final Player player;
+    private final UUID uuid;
     @Setter
     private Team team;
     @Setter
@@ -29,15 +31,15 @@ public class CtfPlayer {
 
     private double coins;
 
-    CtfPlayer(Player player) {
-        this.player = player;
+    CtfPlayer(UUID uuid) {
+        this.uuid = uuid;
         this.setTeam(Team.NONE);
 
         players.add(this);
     }
 
     public CtfPlayer(UUID uuid, int kills, int deaths, double coins) {
-        this.player = (Player) Bukkit.getOfflinePlayer(uuid);
+        this.uuid = uuid;
         this.kills = kills;
         this.deaths = deaths;
         this.coins = coins;
@@ -48,9 +50,19 @@ public class CtfPlayer {
 
     public static CtfPlayer get(Player player) {
         return players.stream()
-                .filter(sp -> sp.getPlayer().equals(player))
+                .filter(sp -> sp.getUuid().equals(player.getUniqueId()))
                 .findFirst()
-                .orElse(new CtfPlayer(player));
+                .orElse(new CtfPlayer(player.getUniqueId()));
+    }
+
+    public Player getPlayer() throws PlayerNotFoundException {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) throw new PlayerNotFoundException(uuid);
+        return player;
+    }
+
+    public OfflinePlayer getOfflinePlayer() {
+        return Bukkit.getOfflinePlayer(uuid);
     }
 
     /**
