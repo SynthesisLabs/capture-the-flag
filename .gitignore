@@ -2,3 +2,4 @@
 target/
 capture-the-flag.iml
 src/main/resources/config.yml
+dependency-reduced-pom.xml

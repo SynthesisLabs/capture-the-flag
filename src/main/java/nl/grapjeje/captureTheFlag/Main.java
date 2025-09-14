@@ -9,13 +9,18 @@ public final class Main extends JavaPlugin {
     @Getter
     private static DB db;
     @Getter
-    private static FileConfiguration config;
+    private static FileConfiguration fileConfig;
+
+    @Getter
+    private static Main instance;
 
     @Override
     public void onEnable() {
+        instance = this;
+
         // Config
         this.saveDefaultConfig();
-        config = getConfig();
+        fileConfig = this.getConfig();
 
         // Register database
         db = new DB();
@@ -23,6 +28,10 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        db.close();
+        if (db != null) db.close();
+    }
+
+    public void disablePlugin() {
+        getServer().getPluginManager().disablePlugin(this);
     }
 }

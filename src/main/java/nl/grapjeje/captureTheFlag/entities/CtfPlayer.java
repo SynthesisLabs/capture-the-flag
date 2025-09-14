@@ -133,7 +133,7 @@ public class CtfPlayer {
         String sql = "INSERT INTO ctf_players (uuid, kills, deaths, coins) " +
                 "VALUES (?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
-                "uuid = VALUES(uuid)" +
+                "uuid = VALUES(uuid), " +
                 "kills = VALUES(kills), deaths = VALUES(deaths), coins = VALUES(coins)";
 
         try (PreparedStatement stmt = DB.getConnection().prepareStatement(sql)) {

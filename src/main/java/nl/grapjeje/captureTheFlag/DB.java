@@ -14,11 +14,11 @@ public class DB {
     private final String pass;
 
     public DB() {
-        String host = Main.getConfig().getString("database.host");
-        int port = Main.getConfig().getInt("database.port");
-        String db = Main.getConfig().getString("database.name");
-        this.user = Main.getConfig().getString("database.user");
-        this.pass = Main.getConfig().getString("database.password");
+        String host = Main.getFileConfig().getString("database.host", "localhost");
+        int port = Main.getFileConfig().getInt("database.port", 3306);
+        String db = Main.getFileConfig().getString("database.database", "capture_the_flag");
+        this.user = Main.getFileConfig().getString("database.user", "root");
+        this.pass = Main.getFileConfig().getString("database.password", "");
 
         this.url = "jdbc:mysql://" + host + ":" + port + "/" + db
                 + "?useSSL=false&serverTimezone=UTC";
@@ -34,6 +34,7 @@ public class DB {
             System.out.println("Connected to database");
         } catch (Exception ex) {
             ex.printStackTrace();
+            Main.getInstance().disablePlugin();
         }
     }
 
@@ -50,10 +51,12 @@ public class DB {
     public void close() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(url, user, pass);
+            if (connection == null) return;
+            connection.close();
             System.out.println("Connection closed");
         } catch (Exception ex) {
             ex.printStackTrace();
+            Main.getInstance().disablePlugin();
         }
     }
 }
