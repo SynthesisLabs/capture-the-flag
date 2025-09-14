@@ -75,7 +75,7 @@ public class TestCommand extends Command {
 
 ```java
 public void init() {
-    this.registerCommand(new TestCommand()); // Jou eigen command
+    this.registerCommand(new TestCommand()); // Jouw eigen command
 }
 ```
 
