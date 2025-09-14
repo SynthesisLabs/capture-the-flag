@@ -3,7 +3,9 @@ package nl.grapjeje.captureTheFlag;
 import lombok.Getter;
 import org.flywaydb.core.Flyway;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DB {
     @Getter
@@ -13,6 +15,16 @@ public class DB {
     private final String user;
     private final String pass;
 
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            System.out.println("MySQL Driver loaded");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("MySQL Driver not found!");
+        }
+    }
+
     public DB() {
         String host = Main.getFileConfig().getString("database.host", "localhost");
         int port = Main.getFileConfig().getInt("database.port", 3306);
@@ -20,8 +32,7 @@ public class DB {
         this.user = Main.getFileConfig().getString("database.user", "root");
         this.pass = Main.getFileConfig().getString("database.password", "");
 
-        this.url = "jdbc:mysql://" + host + ":" + port + "/" + db
-                + "?useSSL=false&serverTimezone=UTC";
+        this.url = "jdbc:mysql://" + host + ":" + port + "/" + db;
 
         this.migrate();
         this.connectToDatabase();
@@ -29,34 +40,38 @@ public class DB {
 
     private void connectToDatabase() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
             connection = DriverManager.getConnection(url, user, pass);
-            System.out.println("Connected to database");
-        } catch (Exception ex) {
+            Main.getInstance().getLogger().info("Connected to database");
+        } catch (SQLException ex) {
             ex.printStackTrace();
             Main.getInstance().disablePlugin();
         }
     }
 
     private void migrate() {
-        Flyway flyway = Flyway.configure()
-                .dataSource(url, user, pass)
-                .locations("classpath:db/migration")
-                .load();
-
-        flyway.migrate();
-        System.out.println("Migrated database");
-    }
-
-    public void close() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            if (connection == null) return;
-            connection.close();
-            System.out.println("Connection closed");
+            Flyway flyway = Flyway.configure()
+                    .dataSource(url, user, pass)
+                    .locations("classpath:db/migration")
+                    .load();
+
+            flyway.migrate();
+            Main.getInstance().getLogger().info("Migrated database");
         } catch (Exception ex) {
             ex.printStackTrace();
             Main.getInstance().disablePlugin();
+        }
+    }
+
+    public void close() {
+        if (connection != null) {
+            try {
+                connection.close();
+                Main.getInstance().getLogger().info("Connection closed");
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                Main.getInstance().disablePlugin();
+            }
         }
     }
 }
