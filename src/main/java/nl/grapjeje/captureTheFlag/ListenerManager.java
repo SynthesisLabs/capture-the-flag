@@ -8,7 +8,7 @@ public class ListenerManager {
 
     }
 
-    public void registerEventListener(Listener eventListener) {
+    private void registerEventListener(Listener eventListener) {
         Main.getInstance().getServer().getPluginManager().registerEvents(eventListener, Main.getInstance());
     }
 }
