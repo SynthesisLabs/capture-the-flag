@@ -23,7 +23,7 @@ public final class Main extends JavaPlugin {
         fileConfig = this.getConfig();
 
         // Register database
-//        db = new DB();
+        db = new DB();
 
         // Register listeners
         new ListenerManager().init();
