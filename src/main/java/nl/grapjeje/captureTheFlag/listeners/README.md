@@ -4,7 +4,7 @@ Deze map bevat alle event listeners voor de CaptureTheFlag-plugin. Dit document 
 
 ---
 
-## Een nieuwe Listener aanmaken
+## 1. Een nieuwe Listener aanmaken
 
 1. Maak een nieuwe Java-klasse in de `listeners` map.
 2. Laat de klasse het Bukkit `Listener`-interface implementeren.
@@ -57,5 +57,18 @@ public class TestListener implements Listener {
     public boolean isOnline(Player player) {
         return player.isOnline();
     }
+}
+```
+
+## 2 Listener registreren
+
+1. Ga opzoek naar de ```ListenerManager.java``` (Je kunt een instantie ervan vinden in ```Main.java```)
+2. Voeg daar jouw aangemaakte Listener toe!
+
+### Voorbeeld:
+
+```java
+public void init() {
+    this.registerEventListener(new TestListener()); // Jouw eigen listener
 }
 ```
