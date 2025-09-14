@@ -24,6 +24,9 @@ public final class Main extends JavaPlugin {
 
         // Register database
         db = new DB();
+
+        // Register listeners
+        new ListenerManager().init();
     }
 
     @Override
