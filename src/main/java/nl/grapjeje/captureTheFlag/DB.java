@@ -1,15 +1,15 @@
 package nl.grapjeje.captureTheFlag;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
-import org.flywaydb.core.Flyway;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DB {
     @Getter
-    private static Connection connection;
+    private static HikariDataSource dataSource;
 
     private final String url;
     private final String user;
@@ -32,43 +32,69 @@ public class DB {
         this.user = Main.getFileConfig().getString("database.user", "root");
         this.pass = Main.getFileConfig().getString("database.password", "");
 
-        this.url = "jdbc:mysql://" + host + ":" + port + "/" + db;
+        this.url = "jdbc:mysql://" + host + ":" + port + "/" + db
+                + "?useSSL=false"
+                + "&allowPublicKeyRetrieval=true"
+                + "&serverTimezone=UTC";
 
-        this.migrate();
-        this.connectToDatabase();
+        this.connectWithHikari();
     }
 
-    private void connectToDatabase() {
+    private void connectWithHikari() {
         try {
-            connection = DriverManager.getConnection(url, user, pass);
-            Main.getInstance().getLogger().info("Connected to database");
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            Main.getInstance().disablePlugin();
-        }
-    }
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(url);
+            config.setUsername(user);
+            config.setPassword(pass);
+            config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
-    private void migrate() {
-        try {
-            Flyway flyway = Flyway.configure()
-                    .dataSource(url, user, pass)
-                    .locations("classpath:db/migration")
-                    .load();
+            // ---- Pool sizing ----
+            config.setMaximumPoolSize(32);
+            config.setMinimumIdle(4);
 
-            flyway.migrate();
-            Main.getInstance().getLogger().info("Migrated database");
+            // ---- Timeouts ----
+            config.setConnectionTimeout(5_000);
+            config.setInitializationFailTimeout(-1);
+
+            // ---- Lifecycle ----
+            config.setKeepaliveTime(120_000);
+            config.setIdleTimeout(240_000);
+            config.setMaxLifetime(1_200_000);
+
+            // ---- MySQL driver props ----
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            config.addDataSourceProperty("useServerPrepStmts", "true");
+            config.addDataSourceProperty("useLocalSessionState", "true");
+            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+            config.addDataSourceProperty("cacheResultSetMetadata", "true");
+            config.addDataSourceProperty("cacheServerConfiguration", "true");
+            config.addDataSourceProperty("elideSetAutoCommits", "true");
+            config.addDataSourceProperty("maintainTimeStats", "false");
+
+            // ---- Nice-to-have ----
+            config.addDataSourceProperty("applicationName", "capture-the-flag");
+
+            dataSource = new HikariDataSource(config);
+
+            Main.getInstance().getLogger().info("Connected to database via HikariCP");
         } catch (Exception ex) {
             ex.printStackTrace();
             Main.getInstance().disablePlugin();
         }
     }
 
+    public static Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
     public void close() {
-        if (connection != null) {
+        if (dataSource != null) {
             try {
-                connection.close();
-                Main.getInstance().getLogger().info("Connection closed");
-            } catch (SQLException ex) {
+                dataSource.close();
+                Main.getInstance().getLogger().info("HikariCP pool closed");
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 Main.getInstance().disablePlugin();
             }
