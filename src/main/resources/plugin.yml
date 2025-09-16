@@ -5,3 +5,21 @@ api-version: '1.21'
 authors: [ GrapJeje ]
 description: A Capture The Flag Plugin
 website: grapjeje.nl
+
+commands:
+  help:
+    description: Disabled
+  me:
+    description: Disabled
+  msg:
+    description: Disabled
+  teammsg:
+    description: Disabled
+  tell:
+    description: Disabled
+  tm:
+    description: Disabled
+  trigger:
+    description: Disabled
+  w:
+    description: Disabled
