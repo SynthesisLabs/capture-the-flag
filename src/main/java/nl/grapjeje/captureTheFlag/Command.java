@@ -3,6 +3,7 @@ package nl.grapjeje.captureTheFlag;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -35,5 +36,9 @@ public abstract class Command implements CommandExecutor {
 
     protected boolean isPlayer() {
         return this.sender instanceof Player;
+    }
+
+    protected CtfPlayer getCtfPlayer() {
+        return CtfPlayer.get(this.player);
     }
 }

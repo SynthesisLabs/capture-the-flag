@@ -1,8 +1,11 @@
 package nl.grapjeje.captureTheFlag;
 
 import lombok.Getter;
+import lombok.Setter;
+import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public final class Main extends JavaPlugin {
 
@@ -10,13 +13,18 @@ public final class Main extends JavaPlugin {
     private static DB db;
     @Getter
     private static FileConfiguration fileConfig;
-
     @Getter
     private static Main instance;
+    @Getter
+    private BukkitScheduler scheduler;
+    @Getter
+    @Setter
+    private CtfGame game;
 
     @Override
     public void onEnable() {
         instance = this;
+        scheduler = this.getServer().getScheduler();
 
         // Config
         this.saveDefaultConfig();
@@ -37,6 +45,6 @@ public final class Main extends JavaPlugin {
     }
 
     public void disablePlugin() {
-        getServer().getPluginManager().disablePlugin(this);
+        this.getServer().getPluginManager().disablePlugin(this);
     }
 }

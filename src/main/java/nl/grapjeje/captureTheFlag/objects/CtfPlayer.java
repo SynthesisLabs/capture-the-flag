@@ -1,9 +1,8 @@
-package nl.grapjeje.captureTheFlag.entities;
+package nl.grapjeje.captureTheFlag.objects;
 
 import lombok.Getter;
 import lombok.Setter;
 import nl.grapjeje.captureTheFlag.DB;
-import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.exeptions.PlayerNotFoundException;
@@ -30,6 +29,10 @@ public class CtfPlayer {
     private int deaths;
 
     private double coins;
+
+    // Game settings
+    @Setter
+    private boolean captain = false;
 
     CtfPlayer(UUID uuid) {
         this.uuid = uuid;

@@ -7,6 +7,8 @@ description: A Capture The Flag Plugin
 website: grapjeje.nl
 
 commands:
+  test:
+    description: Test command
   help:
     description: Disabled
   me:

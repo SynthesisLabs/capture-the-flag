@@ -1,5 +1,6 @@
 package nl.grapjeje.captureTheFlag;
 
+import nl.grapjeje.captureTheFlag.commands.TestCommand;
 import nl.grapjeje.captureTheFlag.commands.vanilla.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -20,6 +21,9 @@ public class CommandManager {
         this.registerCommand(new McTmCommand());
         this.registerCommand(new McTriggerCommand());
         this.registerCommand(new McWCommand());
+
+        // Test command
+        this.registerCommand(new TestCommand());
     }
 
     private void registerCommand(nl.grapjeje.captureTheFlag.Command command) {

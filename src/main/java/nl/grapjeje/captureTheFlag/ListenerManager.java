@@ -1,12 +1,16 @@
 package nl.grapjeje.captureTheFlag;
 
 import nl.grapjeje.captureTheFlag.listeners.CommandListener;
+import nl.grapjeje.captureTheFlag.listeners.VoteCaptainListener;
 import org.bukkit.event.Listener;
 
 public class ListenerManager {
 
     public void init() {
         this.registerEventListener(new CommandListener());
+
+        // Game Listeners
+        this.registerEventListener(new VoteCaptainListener());
     }
 
     private void registerEventListener(Listener eventListener) {
