@@ -60,10 +60,8 @@ public class CtfGame {
                 .map(CtfPlayer::getPlayer)
                 .toList();
 
-        // Maak een nieuw 9x3 inventory (27 slots)
         Inventory inv = Bukkit.createInventory(null, 27, Component.text("Vote your captain"));
 
-        // Fillers
         ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = filler.getItemMeta();
         fillerMeta.displayName(Component.text(" "));
@@ -73,14 +71,12 @@ public class CtfGame {
             inv.setItem(i, filler);
         }
 
-        // Voeg skulls toe
         int slot = 0;
         for (Player mate : teamMates) {
             ItemStack skull = createPlayerHead(mate);
             inv.setItem(slot++, skull);
         }
 
-        // Open inventory
         player.openInventory(inv);
     }
 
