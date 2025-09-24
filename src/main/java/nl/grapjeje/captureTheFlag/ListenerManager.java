@@ -1,6 +1,7 @@
 package nl.grapjeje.captureTheFlag;
 
 import nl.grapjeje.captureTheFlag.listeners.CommandListener;
+import nl.grapjeje.captureTheFlag.listeners.PlaceFlagListener;
 import nl.grapjeje.captureTheFlag.listeners.VoteCaptainListener;
 import org.bukkit.event.Listener;
 
@@ -11,6 +12,7 @@ public class ListenerManager {
 
         // Game Listeners
         this.registerEventListener(new VoteCaptainListener());
+        this.registerEventListener(new PlaceFlagListener());
     }
 
     private void registerEventListener(Listener eventListener) {

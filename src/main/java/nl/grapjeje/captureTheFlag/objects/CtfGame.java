@@ -24,6 +24,8 @@ public class CtfGame {
     @Setter
     private GameStatus status = GameStatus.STOPPED;
 
+    private final Map<Team, CtfFlag> gameFlags = new HashMap<>();
+
     public CtfGame() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             players.add(CtfPlayer.get(p));
@@ -115,6 +117,7 @@ public class CtfGame {
                     captain.sendMessage(
                             MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
                     );
+                    CtfFlag.giveToPlayer(CtfPlayer.get(captain));
                 }
             }
         }
