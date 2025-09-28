@@ -7,6 +7,7 @@ import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.exeptions.PlayerNotFoundException;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -40,6 +41,15 @@ public class CtfPlayer {
 
         players.add(this);
     }
+
+    private String getTeamName(Team team) {
+        return switch (team) {
+            case RED -> ChatColor.RED + "RED";
+            case BLUE -> ChatColor.BLUE + "BLUE";
+            default -> ChatColor.GRAY + "NONE";
+        };
+    }
+
 
     public CtfPlayer(UUID uuid, int kills, int deaths, double coins) {
         this.uuid = uuid;
