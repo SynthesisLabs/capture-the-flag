@@ -1,15 +1,17 @@
 package nl.grapjeje.captureTheFlag.commands.vanilla;
 
-import nl.grapjeje.captureTheFlag.Command;
+import nl.grapjeje.core.command.Command;
+import nl.grapjeje.core.command.CommandSourceStack;
 
-public class McTeamMsgCommand extends Command {
+public class McTeamMsgCommand implements Command {
 
-    public McTeamMsgCommand() {
-        super("teammsg");
+    @Override
+    public String getName() {
+        return "teammsg";
     }
 
     @Override
-    protected void execute(String[] args) {
+    public void execute(CommandSourceStack commandSourceStack, String[] strings) {
 
     }
 }

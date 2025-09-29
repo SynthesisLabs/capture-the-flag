@@ -14,36 +14,15 @@ public class CommandManager {
 
     public void init() {
         // Vanilla commands
-        this.registerCommand(new McHelpCommand());
-        this.registerCommand(new McMeCommand());
-        this.registerCommand(new McTeamMsgCommand());
-        this.registerCommand(new McTellCommand());
-        this.registerCommand(new McTmCommand());
-        this.registerCommand(new McTriggerCommand());
-        this.registerCommand(new McWCommand());
+        Main.getFramework().registerCommand(McHelpCommand::new);
+        Main.getFramework().registerCommand(McMeCommand::new);
+        Main.getFramework().registerCommand(McTeamMsgCommand::new);
+        Main.getFramework().registerCommand(McTellCommand::new);
+        Main.getFramework().registerCommand(McTmCommand::new);
+        Main.getFramework().registerCommand(McTriggerCommand::new);
+        Main.getFramework().registerCommand(McWCommand::new);
 
         // Test command
-        this.registerCommand(new TestCommand());
-    }
-
-    private void registerCommand(nl.grapjeje.captureTheFlag.Command command) {
-        PluginCommand bukkitCommand = Main.getInstance().getCommand(command.getName());
-        if (bukkitCommand != null) {
-            try {
-                PluginManager pluginManager = Bukkit.getPluginManager();
-                Field commandMapField = pluginManager.getClass().getDeclaredField("commandMap");
-                commandMapField.setAccessible(true);
-                CommandMap commandMap = (CommandMap) commandMapField.get(pluginManager);
-
-                Command existingCommand = commandMap.getCommand(command.getName());
-                if (existingCommand != null) existingCommand.unregister(commandMap);
-                commandMap.register(Main.getInstance().getName(), bukkitCommand);
-
-                bukkitCommand.setExecutor(command);
-            } catch (Exception e) {
-                e.printStackTrace();
-                Main.getInstance().disablePlugin();
-            }
-        }
+        Main.getFramework().registerCommand(TestCommand::new);
     }
 }

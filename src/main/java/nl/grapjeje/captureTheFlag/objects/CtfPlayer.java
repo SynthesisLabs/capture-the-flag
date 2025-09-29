@@ -2,10 +2,10 @@ package nl.grapjeje.captureTheFlag.objects;
 
 import lombok.Getter;
 import lombok.Setter;
-import nl.grapjeje.captureTheFlag.DB;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
-import nl.grapjeje.captureTheFlag.exeptions.PlayerNotFoundException;
+import nl.grapjeje.core.Main;
+import nl.grapjeje.core.exeptions.PlayerNotFoundException;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -139,7 +139,7 @@ public class CtfPlayer {
                 "uuid = VALUES(uuid), " +
                 "kills = VALUES(kills), deaths = VALUES(deaths), coins = VALUES(coins)";
 
-        try (PreparedStatement stmt = DB.getConnection().prepareStatement(sql)) {
+        try (PreparedStatement stmt = Main.getDb().getConnection().prepareStatement(sql)) {
             stmt.setString(1, this.getPlayer().getUniqueId().toString());
             stmt.setInt(2, this.getKills());
             stmt.setInt(3, this.getDeaths());

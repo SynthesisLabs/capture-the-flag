@@ -69,6 +69,6 @@ public class TestListener implements Listener {
 
 ```java
 public void init() {
-    this.registerEventListener(new TestListener()); // Jouw eigen listener
+    Main.getFramework().registerListener(TestListener::new); // Jouw eigen listener
 }
 ```

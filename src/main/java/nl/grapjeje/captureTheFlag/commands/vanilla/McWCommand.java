@@ -1,15 +1,17 @@
 package nl.grapjeje.captureTheFlag.commands.vanilla;
 
-import nl.grapjeje.captureTheFlag.Command;
+import nl.grapjeje.core.command.Command;
+import nl.grapjeje.core.command.CommandSourceStack;
 
-public class McWCommand extends Command {
+public class McWCommand implements Command {
 
-    public McWCommand() {
-        super("w");
+    @Override
+    public String getName() {
+        return "w";
     }
 
     @Override
-    protected void execute(String[] args) {
+    public void execute(CommandSourceStack commandSourceStack, String[] strings) {
 
     }
 }
