@@ -1,16 +1,17 @@
 package nl.grapjeje.captureTheFlag.commands.vanilla;
 
-import nl.grapjeje.captureTheFlag.Command;
-import org.jetbrains.annotations.NotNull;
+import nl.grapjeje.core.command.Command;
+import nl.grapjeje.core.command.CommandSourceStack;
 
-public class McHelpCommand extends Command {
+public class McHelpCommand implements Command {
 
-    public McHelpCommand() {
-        super("help");
+    @Override
+    public String getName() {
+        return "help";
     }
 
     @Override
-    protected void execute(String[] args) {
+    public void execute(CommandSourceStack commandSourceStack, String[] strings) {
 
     }
 }

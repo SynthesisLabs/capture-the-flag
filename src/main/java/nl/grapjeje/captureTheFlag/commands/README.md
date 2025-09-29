@@ -7,20 +7,20 @@ Deze map bevat alle commands voor de CaptureTheFlag-plugin. Dit document legt ui
 ## 1. Een nieuwe Command aanmaken
 
 1. Maak een nieuwe Java-klasse in de `commands` map.
-2. Maak een klasse die de custom Command klasse uitbreidt.
-3. Implementeer de methode(s).
-4. Maak de constructor met de command naam.
+2. Maak een klasse die de custom Command klasse implementeerd.
+3. Implementeer de required methode(s).
 
 ### Zo moet het er nu uit zien:
 
 ```java
-public class TestCommand extends Command {
-    public TestCommand() {
-        super("test");
+public class TestCommand implements Command {
+    @Override
+    public String getName() {
+        return "test";
     }
 
     @Override
-    protected void execute(String[] args) {
+    public void execute(CommandSourceStack commandSourceStack, String[] args) {
         
     }
 }
@@ -30,10 +30,14 @@ In de execute zet je alle logica neer voor je command.
 
 ```java
 @Override
-protected void execute(String[] args) {
-    this.getPlayer().sendMessage("Hello World!");
+public void execute(CommandSourceStack commandSourceStack, String[] args) {
+    commandSourceStack.getPlayer().sendMessage("Hello World!");
 }
 ```
+### CommandSourceStack
+CommandSourceStack is een classe die verschillende methodes bevat om informatie te krijgen over de sender die het commando heeft uitgevoerd. (Dus ook de speler)
+
+### Args
 
 In de ```String[] args``` parameter zitten alle argumenten die de speler heeft meegegeven.
 
@@ -44,18 +48,19 @@ In het commando ```/test a b c``` kun je de eerste parameter krijgen met ```args
 ### Voorbeeld:
 
 ```java
-public class TestCommand extends Command {
+public class TestCommand implements Command {
 
-    public TestCommand() {
-        super("test");
+    @Override
+    public String getName() {
+        return "test";
     }
 
     private boolean isOnline = false;
 
     @Override
-    protected void execute(String[] args) {
-        this.isOnline = this.isOnline(this.getPlayer());
-        // this.getPlayer() returned null als dit commando niet door een speler is verstuurd. 
+    protected void execute(CommandSourceStack commandSourceStack, String[] args) {
+        this.isOnline = this.isOnline(commandSourceStack.getPlayer());
+        // commandSourceStack.getPlayer() returned null als dit commando niet door een speler is verstuurd. 
         // Bijvoorbeeld door de console.
     }
 
@@ -75,7 +80,7 @@ public class TestCommand extends Command {
 
 ```java
 public void init() {
-    this.registerCommand(new TestCommand()); // Jouw eigen command
+    Main.getFramework().registerCommand(TestCommand::new); // Jouw eigen command
 }
 ```
 

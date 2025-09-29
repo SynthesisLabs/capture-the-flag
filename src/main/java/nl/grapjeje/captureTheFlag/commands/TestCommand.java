@@ -1,17 +1,20 @@
 package nl.grapjeje.captureTheFlag.commands;
 
-import nl.grapjeje.captureTheFlag.Command;
+import nl.grapjeje.core.command.Command;
+
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
-import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
+import nl.grapjeje.core.command.CommandSourceStack;
 
-public class TestCommand extends Command {
-    public TestCommand() {
-        super("test");
+public class TestCommand implements Command {
+
+    @Override
+    public String getName() {
+        return "test";
     }
 
     @Override
-    protected void execute(String[] args) {
+    public void execute(CommandSourceStack commandSourceStack, String[] strings) {
         CtfGame game = new CtfGame();
         Main.getInstance().setGame(game);
     }

@@ -3,16 +3,14 @@ package nl.grapjeje.captureTheFlag;
 import lombok.Getter;
 import lombok.Setter;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
-import org.bukkit.configuration.file.FileConfiguration;
+import nl.grapjeje.core.Framework;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public final class Main extends JavaPlugin {
 
     @Getter
-    private static DB db;
-    @Getter
-    private static FileConfiguration fileConfig;
+    private static Framework framework;
     @Getter
     private static Main instance;
     @Getter
@@ -24,14 +22,8 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        framework = Framework.init(this);
         scheduler = this.getServer().getScheduler();
-
-        // Config
-        this.saveDefaultConfig();
-        fileConfig = this.getConfig();
-
-        // Register database
-        db = new DB();
 
         // Register listeners
         new ListenerManager().init();
@@ -41,7 +33,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (db != null) db.close();
+
     }
 
     public void disablePlugin() {
