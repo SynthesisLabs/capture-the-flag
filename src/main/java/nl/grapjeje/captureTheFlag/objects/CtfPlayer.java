@@ -38,7 +38,6 @@ public class CtfPlayer {
     CtfPlayer(UUID uuid) {
         this.uuid = uuid;
         this.setTeam(Team.NONE);
-
         players.add(this);
     }
 
@@ -50,14 +49,12 @@ public class CtfPlayer {
         };
     }
 
-
     public CtfPlayer(UUID uuid, int kills, int deaths, double coins) {
         this.uuid = uuid;
         this.kills = kills;
         this.deaths = deaths;
         this.coins = coins;
         this.setTeam(Team.NONE);
-
         players.add(this);
     }
 
@@ -80,66 +77,96 @@ public class CtfPlayer {
 
     /**
      * Increases the kill count by one and saves the player to the database.
+     * Also updates the scoreboard.
      * @return the updated amount of kills
      */
     public int addKill() {
         this.kills++;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getKills();
     }
 
     /**
      * Increases the death count by one and saves the player to the database.
+     * Also updates the scoreboard.
      * @return the updated amount of deaths
      */
     public int addDeath() {
         this.deaths++;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getDeaths();
     }
 
     /**
      * Adds coins to the player's balance and saves the player to the database.
+     * Also updates the scoreboard.
      * @param coins the amount of coins to add
      * @return the updated amount of coins
      */
     public double addCoins(double coins) {
         this.coins += coins;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getCoins();
     }
 
     /**
      * Sets the player's kill count and saves the player to the database.
+     * Also updates the scoreboard.
      * @param kills the new kill count
      * @return the updated amount of kills
      */
     public int setKills(int kills) {
         this.kills = kills;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getKills();
     }
 
     /**
      * Sets the player's death count and saves the player to the database.
+     * Also updates the scoreboard.
      * @param deaths the new death count
      * @return the updated amount of deaths
      */
     public int setDeaths(int deaths) {
         this.deaths = deaths;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getDeaths();
     }
 
     /**
      * Sets the player's coin balance and saves the player to the database.
+     * Also updates the scoreboard.
      * @param coins the new coin balance
      * @return the updated amount of coins
      */
     public double setCoins(double coins) {
         this.coins = coins;
         this.savePlayer();
+        CtfScoreboardManager.update(this);
         return this.getCoins();
+    }
+
+    /**
+     * Sets the player's team and updates the scoreboard.
+     * @param team the new team
+     */
+    public void setTeam(Team team) {
+        this.team = team;
+        CtfScoreboardManager.update(this);
+    }
+
+    /**
+     * Sets whether the player is captain and updates the scoreboard.
+     * @param captain true if the player is captain
+     */
+    public void setCaptain(boolean captain) {
+        this.captain = captain;
+        CtfScoreboardManager.update(this);
     }
 
     public void savePlayer() {
