@@ -137,13 +137,16 @@ public class CtfPlayer {
                 "VALUES (?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "uuid = VALUES(uuid), " +
-                "kills = VALUES(kills), deaths = VALUES(deaths), coins = VALUES(coins)";
+                "kills = VALUES(kills), deaths = VALUES(deaths), coins = VALUES(coins), " +
+                "kit = VALUES(kit)";
+
 
         try (PreparedStatement stmt = Main.getDb().getConnection().prepareStatement(sql)) {
             stmt.setString(1, this.getPlayer().getUniqueId().toString());
             stmt.setInt(2, this.getKills());
             stmt.setInt(3, this.getDeaths());
             stmt.setDouble(4, this.getCoins());
+            stmt.setString(5, this.getKit() != null? this.getKit().name() : "NONE");
 
             stmt.executeUpdate();
         } catch (Exception e) {
