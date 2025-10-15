@@ -33,7 +33,7 @@ public class PlaceFlagListener implements Listener {
         if (Main.getInstance().getGame().getGameFlags().containsKey(team)) {
             flag = Main.getInstance().getGame().getGameFlags().get(team);
             if (flag.isPlaced()) CtfFlag.removeFromPlayer(ctfPlayer);
-            else flag.place(ctfPlayer, clickedBlock.getLocation());
+//            else flag.place(ctfPlayer, clickedBlock.getLocation());
         } else {
             flag = new CtfFlag();
             flag.place(ctfPlayer, clickedBlock.getLocation());

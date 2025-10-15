@@ -1,19 +1,18 @@
 package nl.grapjeje.captureTheFlag.enums;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 
 @Getter
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum Team {
     BLUE("<blue>"),
     RED("<red>"),
     NONE("<gray>");
 
     private final String colorCode;
-
-    Team(String colorCode) {
-        this.colorCode = colorCode;
-    }
 
     @Override
     public String toString() {

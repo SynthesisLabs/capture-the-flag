@@ -25,3 +25,5 @@ commands:
     description: Disabled
   w:
     description: Disabled
+  placeflag:
+    description: temp
