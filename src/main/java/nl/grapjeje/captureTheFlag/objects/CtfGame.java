@@ -16,7 +16,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 
@@ -26,22 +27,102 @@ import static nl.grapjeje.captureTheFlag.enums.Team.RED;
 @Getter
 public class CtfGame {
     private final List<CtfPlayer> players = new ArrayList<>();
-
     @Setter
     private GameStatus status = GameStatus.STOPPED;
-
     private final Map<Team, CtfFlag> gameFlags = new HashMap<>();
+    private final double flagRadius = 2;
+    private final Map<Team, Integer> points = new HashMap<>();
+    private final Map<UUID, Long> captureProgress = new HashMap<>();
+    private final Map<Team, Map<UUID, Integer>> votes = new HashMap<>();
 
     public CtfGame() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            players.add(CtfPlayer.get(p));
-        }
+        for (Player p : Bukkit.getOnlinePlayers()) players.add(CtfPlayer.get(p));
         Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1);
     }
+
+    // TODO: Verander de namen naar de juiste kleur
+    // TODO: Voeg leave en kill logica toe - Dat de vlag dropt
 
     private void tick() {
         this.start();
         this.showFlag();
+        for (CtfPlayer ctfPlayer : players) {
+            Player player = ctfPlayer.getPlayer();
+            UUID uuid = player.getUniqueId();
+
+            if (ctfPlayer.isHasFlag()) {
+                if (!player.hasPotionEffect(PotionEffectType.GLOWING))
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, Integer.MAX_VALUE, 1, true, false));
+            } else if (player.hasPotionEffect(PotionEffectType.GLOWING))
+                player.removePotionEffect(PotionEffectType.GLOWING);
+
+            final long captureTime = 3000;
+            final double radius = 3.0;
+
+            gameFlags.forEach((team, flag) -> {
+                Location flagLoc = flag.getLocation();
+                if (flagLoc == null) return;
+                Location playerLoc = player.getLocation();
+                if (!playerLoc.getWorld().equals(flagLoc.getWorld())) return;
+
+                if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag()) {
+                    if (playerLoc.distance(flagLoc) <= radius) {
+                        long now = System.currentTimeMillis();
+                        captureProgress.putIfAbsent(uuid, now);
+                        long elapsed = now - captureProgress.get(uuid);
+                        double progress = Math.min(1.0, elapsed / (double) captureTime);
+                        int totalBars = 20;
+                        int filledBars = (int) (progress * totalBars);
+                        StringBuilder bar = new StringBuilder();
+                        for (int i = 0; i < totalBars; i++)
+                            bar.append(i < filledBars ? "<primary>|" : "<gray>|");
+                        player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
+                        if (elapsed >= captureTime) {
+                            captureProgress.remove(uuid);
+                            ctfPlayer.setHasFlag(true);
+                            flag.setStolen(true);
+                            if (flagLoc.getBlock().getType() == Material.BLUE_WOOL || flagLoc.getBlock().getType() == Material.RED_WOOL)
+                                flagLoc.getBlock().setType(Material.AIR);
+                            player.sendActionBar(MessageUtil.filterMessage("<primary>You captured the flag!"));
+                        }
+                    } else if (captureProgress.containsKey(uuid)) {
+                        captureProgress.remove(uuid);
+                        player.sendActionBar(MessageUtil.filterMessage("<gray>Capture cancelled"));
+                    }
+                }
+
+                if (ctfPlayer.isHasFlag() && ctfPlayer.getTeam() == team) {
+                    if (playerLoc.distance(flagLoc) <= radius) {
+                        long now = System.currentTimeMillis();
+                        captureProgress.putIfAbsent(uuid, now);
+                        long elapsed = now - captureProgress.get(uuid);
+                        double progress = Math.min(1.0, elapsed / (double) captureTime);
+                        int totalBars = 20;
+                        int filledBars = (int) (progress * totalBars);
+                        StringBuilder bar = new StringBuilder();
+                        for (int i = 0; i < totalBars; i++)
+                            bar.append(i < filledBars ? "<primary>|" : "<gray>|");
+                        player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
+                        if (elapsed >= captureTime) {
+                            captureProgress.remove(uuid);
+                            ctfPlayer.setHasFlag(false);
+                            flag.setStolen(false);
+                            player.sendActionBar(MessageUtil.filterMessage("<primary>You returned the flag!"));
+                            int teamPoints = points.getOrDefault(ctfPlayer.getTeam(), 0) + 1;
+                            points.put(ctfPlayer.getTeam(), teamPoints);
+                            Bukkit.broadcast(MessageUtil.filterMessage(
+                                    "<gray><bold>🏁 <!bold>Team " + ctfPlayer.getTeam() + "<gray> scored! (" +
+                                            "<primary>" + points.getOrDefault(BLUE, 0) + "<gray> - " +
+                                            "<primary>" + points.getOrDefault(RED, 0) + "<gray>)"
+                            ));
+                            respawnFlagHologram(flag, ctfPlayer.getTeam());
+                        }
+                    } else if (captureProgress.containsKey(uuid)) {
+                        captureProgress.remove(uuid);
+                    }
+                }
+            });
+        }
     }
 
     private void showFlag() {
@@ -50,49 +131,31 @@ public class CtfGame {
             CtfFlag flag = entry.getValue();
             Team team = entry.getKey();
             Location baseLoc = flag.getLocation();
+            if (baseLoc == null) continue;
 
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 String hologramPrefix = "ctf_flag_hologram_" + team.name() + "_";
                 for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5.0, 5.0, 5.0)) {
                     if (e instanceof ArmorStand as && as.getCustomName() != null &&
                             as.getCustomName().startsWith(hologramPrefix)) {
-                        if (flag.getLocation() == null ||
-                                as.getLocation().distance(flag.getLocation()) > 1.5) {
+                        if (flag.getLocation() == null || as.getLocation().distance(flag.getLocation()) > 1.5)
                             as.remove();
-                        }
                     }
                 }
             });
 
-            if (!flag.isPlaced() || baseLoc == null) {
-                Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                    if (baseLoc == null) return;
-                    String hologramPrefix = "ctf_flag_hologram_" + team.name() + "_";
-                    for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 3.0, 3.0, 3.0)) {
-                        if (e instanceof ArmorStand as &&
-                                as.getCustomName() != null &&
-                                as.getCustomName().startsWith(hologramPrefix)) {
-                            as.remove();
-                        }
-                    }
-                });
-                continue;
-            }
             Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
-                final double radius = 2;
                 final int points = 35;
                 final double cx = baseLoc.getX();
                 final double cy = baseLoc.getY();
                 final double cz = baseLoc.getZ();
-
                 List<Location> ring = new ArrayList<>(points);
                 for (int i = 0; i < points; i++) {
                     double angle = 2 * Math.PI * i / points;
-                    double x = Math.cos(angle) * radius;
-                    double z = Math.sin(angle) * radius;
+                    double x = Math.cos(angle) * flagRadius;
+                    double z = Math.sin(angle) * flagRadius;
                     ring.add(new Location(baseLoc.getWorld(), cx + x, cy, cz + z));
                 }
-
                 Color color;
                 Material woolType;
                 switch (team) {
@@ -117,83 +180,83 @@ public class CtfGame {
                         Math.round(baseLoc.getX()) + "_" + Math.round(baseLoc.getZ());
 
                 Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                    if (!flag.isPlaced() || flag.getLocation() == null) return;
-                    for (Location loc : ring) {
+                    for (Location loc : ring)
                         loc.getWorld().spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0, dust);
-                    }
-                    ArmorStand existing = null;
-                    for (Entity e : hologramLoc.getWorld().getNearbyEntities(hologramLoc, 1.0, 1.0, 1.0)) {
-                        if (e instanceof ArmorStand as &&
-                                hologramName.equals(as.getCustomName())) {
-                            existing = as;
-                            break;
+
+                    if (!flag.isStolen()) {
+                        ArmorStand existing = null;
+                        for (Entity e : hologramLoc.getWorld().getNearbyEntities(hologramLoc, 1.0, 1.0, 1.0)) {
+                            if (e instanceof ArmorStand as && hologramName.equals(as.getCustomName())) {
+                                existing = as;
+                                break;
+                            }
                         }
-                    }
-                    if (existing != null && !existing.isDead()) {
-                        existing.teleport(hologramLoc);
-                        ItemStack helmet = existing.getEquipment().getHelmet();
-                        if (helmet == null || helmet.getType() != woolType) {
-                            existing.setHelmet(new ItemStack(woolType));
+                        if (existing != null && !existing.isDead()) {
+                            existing.teleport(hologramLoc);
+                            ItemStack helmet = existing.getEquipment().getHelmet();
+                            if (helmet == null || helmet.getType() != woolType)
+                                existing.setHelmet(new ItemStack(woolType));
+                        } else {
+                            ArmorStand as = (ArmorStand) hologramLoc.getWorld()
+                                    .spawnEntity(hologramLoc, EntityType.ARMOR_STAND, false);
+                            as.setGravity(false);
+                            as.setVisible(false);
+                            as.setMarker(true);
+                            as.setCustomName(hologramName);
+                            as.setCustomNameVisible(false);
+                            as.setHelmet(new ItemStack(woolType));
+                            as.setSilent(true);
+                            as.setInvulnerable(true);
                         }
-                    } else {
-                        ArmorStand as = (ArmorStand) hologramLoc.getWorld()
-                                .spawnEntity(hologramLoc, EntityType.ARMOR_STAND, false);
-                        as.setGravity(false);
-                        as.setVisible(false);
-                        as.setMarker(true);
-                        as.setCustomName(hologramName);
-                        as.setCustomNameVisible(false);
-                        as.setHelmet(new ItemStack(woolType));
-                        as.setSilent(true);
-                        as.setInvulnerable(true);
                     }
                 });
             });
         }
     }
 
-    private final Map<Team, Map<UUID, Integer>> votes = new HashMap<>();
+    private void respawnFlagHologram(CtfFlag flag, Team team) {
+        Location baseLoc = flag.getLocation();
+        if (baseLoc == null) return;
+
+        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+            String hologramPrefix = "ctf_flag_hologram_" + team.name() + "_";
+            for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5.0, 5.0, 5.0)) {
+                if (e instanceof ArmorStand as && as.getCustomName() != null &&
+                        as.getCustomName().startsWith(hologramPrefix)) {
+                    as.remove();
+                }
+            }
+        });
+
+        Bukkit.getScheduler().runTaskLater(Main.getInstance(), this::showFlag, 1L);
+    }
 
     public void start() {
         if (status == GameStatus.STARTED) return;
         this.setStatus(GameStatus.STARTED);
         this.assignTeams();
-
         votes.put(BLUE, new HashMap<>());
         votes.put(RED, new HashMap<>());
-
-        for (CtfPlayer ctfPlayer : this.players) {
-            this.openVoteMenu(ctfPlayer);
-        }
+        for (CtfPlayer ctfPlayer : this.players) this.openVoteMenu(ctfPlayer);
         Main.getInstance().getScheduler().runTaskLater(Main.getInstance(), this::pickCaptains, 20 * 15);
     }
 
     private void openVoteMenu(CtfPlayer ctfPlayer) {
         Player player = ctfPlayer.getPlayer();
-
         List<Player> teamMates = this.players.stream()
                 .filter(p -> p.getTeam() == ctfPlayer.getTeam())
-                // .filter(p -> p != ctfPlayer)
-                .map(CtfPlayer::getPlayer)
-                .toList();
-
+                .map(CtfPlayer::getPlayer).toList();
         Inventory inv = Bukkit.createInventory(null, 27, Component.text("Vote your captain"));
-
         ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = filler.getItemMeta();
         fillerMeta.displayName(Component.text(" "));
         filler.setItemMeta(fillerMeta);
-
-        for (int i = 0; i < inv.getSize(); i++) {
-            inv.setItem(i, filler);
-        }
-
+        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, filler);
         int slot = 0;
         for (Player mate : teamMates) {
             ItemStack skull = createPlayerHead(mate);
             inv.setItem(slot++, skull);
         }
-
         player.openInventory(inv);
     }
 
@@ -218,7 +281,6 @@ public class CtfGame {
                     .max(Map.Entry.comparingByValue())
                     .map(Map.Entry::getKey)
                     .orElse(null);
-
             if (winner != null) {
                 Player captain = Bukkit.getPlayer(winner);
                 if (captain != null) {
@@ -226,7 +288,8 @@ public class CtfGame {
                     for (CtfPlayer p : this.players) {
                         if (p.getTeam() == Team.NONE) continue;
                         p.getPlayer().sendMessage(MessageUtil.filterMessage(
-                                "<primary><bold>\uD83C\uDFC6 " + captain.getName() + "<!bold> has been chosen as captain for team <bold>" + team
+                                "<primary><bold>🏆 " + captain.getName() +
+                                        "<!bold> has been chosen as captain for team <bold>" + team
                         ));
                     }
                     captain.sendMessage(
@@ -238,21 +301,10 @@ public class CtfGame {
         }
     }
 
-    private void broadcastTeam(Team team, Component message) {
-        for (CtfPlayer ctfPlayer : this.players) {
-            if (ctfPlayer.getTeam() == team) {
-                ctfPlayer.getPlayer().sendMessage(message);
-            }
-        }
-    }
-
     private void assignTeams() {
-        int blueCount = 0;
-        int redCount = 0;
-
+        int blueCount = 0, redCount = 0;
         for (CtfPlayer player : this.players) {
             if (player.getTeam() != Team.NONE) continue;
-
             if (blueCount <= redCount) {
                 player.setTeam(BLUE);
                 blueCount++;

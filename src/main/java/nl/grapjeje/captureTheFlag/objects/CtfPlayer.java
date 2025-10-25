@@ -34,6 +34,8 @@ public class CtfPlayer {
     // Game settings
     @Setter
     private boolean captain = false;
+    @Setter
+    private boolean hasFlag = false;
 
     CtfPlayer(UUID uuid) {
         this.uuid = uuid;

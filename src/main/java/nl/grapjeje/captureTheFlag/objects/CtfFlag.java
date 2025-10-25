@@ -1,6 +1,7 @@
 package nl.grapjeje.captureTheFlag.objects;
 
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import nl.grapjeje.captureTheFlag.Main;
@@ -23,7 +24,9 @@ public class CtfFlag {
     private boolean placed = false;
     private Location location = null;
 
+    @Setter
     private boolean stolen = false;
+    @Setter
     private boolean dropped = false;
 
     public static void giveToPlayer(CtfPlayer p) {
