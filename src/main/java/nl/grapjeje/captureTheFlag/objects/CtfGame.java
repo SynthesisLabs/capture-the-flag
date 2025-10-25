@@ -51,6 +51,19 @@ public class CtfGame {
             Team team = entry.getKey();
             Location baseLoc = flag.getLocation();
 
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                String hologramPrefix = "ctf_flag_hologram_" + team.name() + "_";
+                for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5.0, 5.0, 5.0)) {
+                    if (e instanceof ArmorStand as && as.getCustomName() != null &&
+                            as.getCustomName().startsWith(hologramPrefix)) {
+                        if (flag.getLocation() == null ||
+                                as.getLocation().distance(flag.getLocation()) > 1.5) {
+                            as.remove();
+                        }
+                    }
+                }
+            });
+
             if (!flag.isPlaced() || baseLoc == null) {
                 Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                     if (baseLoc == null) return;

@@ -4,6 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import nl.grapjeje.core.Framework;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -33,7 +37,14 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-
+        for (World world : Bukkit.getWorlds()) {
+            for (Entity entity : world.getEntities()) {
+                if (entity instanceof ArmorStand as && as.getCustomName() != null
+                        && as.getCustomName().startsWith("ctf_flag_hologram_")) {
+                    as.remove();
+                }
+            }
+        }
     }
 
     public void disablePlugin() {
