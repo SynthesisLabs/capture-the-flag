@@ -52,7 +52,6 @@ public class CtfPlayer {
         };
     }
 
-
     public CtfPlayer(UUID uuid, int kills, int deaths, double coins) {
         this.uuid = uuid;
         this.kills = kills;
