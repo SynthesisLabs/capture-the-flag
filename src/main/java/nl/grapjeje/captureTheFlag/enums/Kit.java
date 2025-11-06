@@ -1,7 +1,7 @@
 package nl.grapjeje.captureTheFlag.enums;
 
 public enum Kit {
-    SCOUT,
+    SCOUT(),
     HEAVY,
     SOLDIER,
     SNIPER,
