@@ -37,7 +37,7 @@ public final class Main extends JavaPlugin {
         new CommandManager().init();
 
         // Register Storm
-        framework.initializeStorm(null);
+        framework.initializeStorm(StormDatabase.getInstance().getStorm());
         this.registerModels();
     }
 

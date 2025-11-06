@@ -15,7 +15,7 @@ import java.util.UUID;
 public class PlayerModel extends StormModel {
 
     @Column(name = "player_uuid")
-    private UUID playerUuid;
+    private String playerUuid;
 
     @Column(name = "kills", defaultValue = "0")
     private Integer kills = 0;
@@ -28,7 +28,7 @@ public class PlayerModel extends StormModel {
 
     public static PlayerModel createNew(Player player) {
         PlayerModel m = new PlayerModel();
-        m.setPlayerUuid(player.getUniqueId());
+        m.setPlayerUuid(player.getUniqueId().toString());
         m.setKills(0);
         m.setDeath(0);
         m.setCoins(0.0);

@@ -129,7 +129,7 @@ public class CtfPlayer {
             try {
                 playerModelOpt = StormDatabase.getInstance().getStorm()
                         .buildQuery(PlayerModel.class)
-                        .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                        .where("player_uuid", Where.EQUAL, player.getUniqueId().toString())
                         .limit(1)
                         .execute()
                         .join()
