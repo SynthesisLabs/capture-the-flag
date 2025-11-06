@@ -14,15 +14,12 @@ import nl.grapjeje.core.exeptions.PlayerNotFoundException;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.sql.PreparedStatement;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 @Getter
 @AutoRegistry
@@ -112,7 +109,9 @@ public class CtfPlayer {
         return this.getCoins();
     }
 
+    // Todo: Swen Scoreboard, import into
     private String getTeamName(Team team) {
+        team.getColorCode();
         return switch (team) {
             case RED -> MessageUtil.filterMessageString("<red>RED");
             case BLUE -> MessageUtil.filterMessageString("<blue>BLUE");
