@@ -1,34 +1,45 @@
 package nl.grapjeje.captureTheFlag.objects;
 
+import com.craftmend.storm.api.enums.Where;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
+import nl.grapjeje.captureTheFlag.models.PlayerModel;
+import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.Main;
+import nl.grapjeje.core.StormDatabase;
 import nl.grapjeje.core.exeptions.PlayerNotFoundException;
+import nl.grapjeje.core.registry.AutoRegistry;
+import nl.grapjeje.core.registry.Registry;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @Getter
+@AutoRegistry
 public class CtfPlayer {
-    private final static List<CtfPlayer> players = new ArrayList<>();
+    @Getter
+    private static final Map<UUID, PlayerModel> playerCache = new ConcurrentHashMap<>();
 
     private final UUID uuid;
-    @Setter
-    private Team team;
-    @Setter
-    private Kit kit;
+    @Getter(AccessLevel.PRIVATE)
+    private final PlayerModel model;
 
+    @Setter
     private int kills;
+    @Setter
     private int deaths;
 
+    @Setter
     private double coins;
 
     // Game settings
@@ -37,36 +48,24 @@ public class CtfPlayer {
     @Setter
     private boolean hasFlag = false;
 
-    CtfPlayer(UUID uuid) {
+    @Setter
+    private Team team;
+    @Setter
+    private Kit kit;
+
+    CtfPlayer(UUID uuid, PlayerModel model) {
         this.uuid = uuid;
+        this.model = model;
         this.setTeam(Team.NONE);
-
-        players.add(this);
     }
 
-    private String getTeamName(Team team) {
-        return switch (team) {
-            case RED -> ChatColor.RED + "RED";
-            case BLUE -> ChatColor.BLUE + "BLUE";
-            default -> ChatColor.GRAY + "NONE";
-        };
-    }
-
-    public CtfPlayer(UUID uuid, int kills, int deaths, double coins) {
-        this.uuid = uuid;
-        this.kills = kills;
-        this.deaths = deaths;
-        this.coins = coins;
-        this.setTeam(Team.NONE);
-
-        players.add(this);
-    }
-
-    public static CtfPlayer get(Player player) {
-        return players.stream()
-                .filter(sp -> sp.getUuid().equals(player.getUniqueId()))
-                .findFirst()
-                .orElse(new CtfPlayer(player.getUniqueId()));
+    public static CtfPlayer get(UUID uuid, PlayerModel model) {
+        return Registry.get(
+                CtfPlayer.class,
+                uuid.toString(),
+                (args) -> new CtfPlayer((UUID) args[0], (PlayerModel) args[1]),
+                uuid, model
+        );
     }
 
     public Player getPlayer() throws PlayerNotFoundException {
@@ -79,13 +78,18 @@ public class CtfPlayer {
         return Bukkit.getOfflinePlayer(uuid);
     }
 
+    public CompletableFuture<Void> save() {
+        playerCache.put(uuid, model);
+        return CompletableFuture.runAsync(() ->
+                StormDatabase.getInstance().saveStormModel(model));
+    }
+
     /**
      * Increases the kill count by one and saves the player to the database.
      * @return the updated amount of kills
      */
     public int addKill() {
         this.kills++;
-        this.savePlayer();
         return this.getKills();
     }
 
@@ -95,7 +99,6 @@ public class CtfPlayer {
      */
     public int addDeath() {
         this.deaths++;
-        this.savePlayer();
         return this.getDeaths();
     }
 
@@ -106,59 +109,49 @@ public class CtfPlayer {
      */
     public double addCoins(double coins) {
         this.coins += coins;
-        this.savePlayer();
         return this.getCoins();
     }
 
-    /**
-     * Sets the player's kill count and saves the player to the database.
-     * @param kills the new kill count
-     * @return the updated amount of kills
-     */
-    public int setKills(int kills) {
-        this.kills = kills;
-        this.savePlayer();
-        return this.getKills();
+    private String getTeamName(Team team) {
+        return switch (team) {
+            case RED -> MessageUtil.filterMessageString("<red>RED");
+            case BLUE -> MessageUtil.filterMessageString("<blue>BLUE");
+            default -> MessageUtil.filterMessageString("<gray>NONE");
+        };
     }
 
-    /**
-     * Sets the player's death count and saves the player to the database.
-     * @param deaths the new death count
-     * @return the updated amount of deaths
-     */
-    public int setDeaths(int deaths) {
-        this.deaths = deaths;
-        this.savePlayer();
-        return this.getDeaths();
-    }
+    public static CompletableFuture<PlayerModel> loadOrCreatePlayerModelAsync(Player player) {
+        PlayerModel cached = playerCache.get(player.getUniqueId());
+        if (cached != null) return CompletableFuture.completedFuture(cached);
 
-    /**
-     * Sets the player's coin balance and saves the player to the database.
-     * @param coins the new coin balance
-     * @return the updated amount of coins
-     */
-    public double setCoins(double coins) {
-        this.coins = coins;
-        this.savePlayer();
-        return this.getCoins();
-    }
+        return CompletableFuture.supplyAsync(() -> {
+            Optional<PlayerModel> playerModelOpt;
+            try {
+                playerModelOpt = StormDatabase.getInstance().getStorm()
+                        .buildQuery(PlayerModel.class)
+                        .where("player_uuid", Where.EQUAL, player.getUniqueId())
+                        .limit(1)
+                        .execute()
+                        .join()
+                        .stream()
+                        .findFirst();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Bukkit.getScheduler().runTask(Main.getInstance().getPlugin(), () ->
+                        player.sendMessage(nl.grapjeje.core.text.MessageUtil.filterMessage("<warning>⚠ Er is een fout opgetreden bij het ophalen van jouw spelersdata!"))
+                );
+                return PlayerModel.createNew(player);
+            }
 
-    public void savePlayer() {
-        String sql = "INSERT INTO ctf_players (uuid, kills, deaths, coins) " +
-                "VALUES (?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " +
-                "uuid = VALUES(uuid), " +
-                "kills = VALUES(kills), deaths = VALUES(deaths), coins = VALUES(coins)";
+            player.getScoreboard();
 
-        try (PreparedStatement stmt = Main.getDb().getConnection().prepareStatement(sql)) {
-            stmt.setString(1, this.getPlayer().getUniqueId().toString());
-            stmt.setInt(2, this.getKills());
-            stmt.setInt(3, this.getDeaths());
-            stmt.setDouble(4, this.getCoins());
+            PlayerModel model = playerModelOpt.orElseGet(() -> {
+                Main.getInstance().getPlugin().getLogger().info("New player grind model made for " + player.getName());
+                return PlayerModel.createNew(player);
+            });
 
-            stmt.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            playerCache.put(player.getUniqueId(), model);
+            return model;
+        });
     }
 }

@@ -40,7 +40,7 @@ public class CtfFlag {
         meta.lore(lore);
 
         NamespacedKey key = new NamespacedKey("ctf", "is_flag");
-        meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte)1);
+        meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
 
         item.setItemMeta(meta);
         p.getPlayer().getInventory().addItem(item);
@@ -63,11 +63,21 @@ public class CtfFlag {
         p.getPlayer().sendMessage(MessageUtil.filterMessage("<green>The flag has been successfully placed!"));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            CtfPlayer cp = CtfPlayer.get(player);
-            if (cp == p) continue;
-            Team team = cp.getTeam();
-            if (team == captainTeam) cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
-            else cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + team.getColorCode() + team.name() + " <gray>has been successfully placed!"));
+            CtfPlayer.loadOrCreatePlayerModelAsync(player)
+                    .thenAccept(model -> {
+                        CtfPlayer cp = CtfPlayer.get(player.getUniqueId(), model);
+                        if (cp == p) return;
+                        Team team = cp.getTeam();
+                        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                            if (team == captainTeam)
+                                cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
+                            else
+                                cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + team.getColorCode() + team.name() + " <gray>has been successfully placed!"));
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
         }
     }
 

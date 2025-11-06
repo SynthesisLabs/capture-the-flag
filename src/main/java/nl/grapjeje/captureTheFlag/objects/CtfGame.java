@@ -36,7 +36,15 @@ public class CtfGame {
     private final Map<Team, Map<UUID, Integer>> votes = new HashMap<>();
 
     public CtfGame() {
-        for (Player p : Bukkit.getOnlinePlayers()) players.add(CtfPlayer.get(p));
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            CtfPlayer.loadOrCreatePlayerModelAsync(p)
+                    .thenAccept(model ->
+                            players.add(CtfPlayer.get(p.getUniqueId(), model))).
+                    exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        }
         Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1);
     }
 
@@ -284,18 +292,26 @@ public class CtfGame {
             if (winner != null) {
                 Player captain = Bukkit.getPlayer(winner);
                 if (captain != null) {
-                    CtfPlayer.get(captain).setCaptain(true);
-                    for (CtfPlayer p : this.players) {
-                        if (p.getTeam() == Team.NONE) continue;
-                        p.getPlayer().sendMessage(MessageUtil.filterMessage(
-                                "<primary><bold>🏆 " + captain.getName() +
-                                        "<!bold> has been chosen as captain for team <bold>" + team
-                        ));
-                    }
-                    captain.sendMessage(
-                            MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
-                    );
-                    CtfFlag.giveToPlayer(CtfPlayer.get(captain));
+                    CtfPlayer.loadOrCreatePlayerModelAsync(captain)
+                            .thenAccept(model -> {
+                                CtfPlayer.get(captain.getUniqueId(), model).setCaptain(true);
+                                for (CtfPlayer p : this.players) {
+                                    if (p.getTeam() == Team.NONE) continue;
+                                    Bukkit.getScheduler().runTask(Main.getInstance(), () ->
+                                            p.getPlayer().sendMessage(MessageUtil.filterMessage(
+                                            "<primary><bold>🏆 " + captain.getName() +
+                                                    "<!bold> has been chosen as captain for team <bold>" + team
+                                    )));
+                                }
+                                Bukkit.getScheduler().runTask(Main.getInstance(), () ->
+                                        captain.sendMessage(
+                                        MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
+                                ));
+                                CtfFlag.giveToPlayer(CtfPlayer.get(captain.getUniqueId(), model));
+                            }).exceptionally(ex -> {
+                                ex.printStackTrace();
+                                return null;
+                            });
                 }
             }
         }

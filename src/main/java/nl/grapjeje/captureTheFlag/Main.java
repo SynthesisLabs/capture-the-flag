@@ -2,8 +2,10 @@ package nl.grapjeje.captureTheFlag;
 
 import lombok.Getter;
 import lombok.Setter;
+import nl.grapjeje.captureTheFlag.models.PlayerModel;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import nl.grapjeje.core.Framework;
+import nl.grapjeje.core.StormDatabase;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
@@ -33,6 +35,15 @@ public final class Main extends JavaPlugin {
         new ListenerManager().init();
         // Register commands
         new CommandManager().init();
+
+        // Register Storm
+        framework.initializeStorm(null);
+        this.registerModels();
+    }
+
+    // All the storm models that needs to be registered
+    private void registerModels() {
+        framework.registerStormModel(PlayerModel::new);
     }
 
     @Override
@@ -45,6 +56,9 @@ public final class Main extends JavaPlugin {
                 }
             }
         }
+
+        if (!StormDatabase.getInstance().isUsingExternalStorm() && nl.grapjeje.core.Main.getDb() != null)
+            nl.grapjeje.core.Main.getDb().close();
     }
 
     public void disablePlugin() {

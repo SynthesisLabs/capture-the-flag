@@ -64,6 +64,11 @@
         </repository>
 
         <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
+        <repository>
             <id>libs-local</id>
             <url>file://${project.basedir}/libs</url>
         </repository>
@@ -78,23 +83,24 @@
         </dependency>
 
         <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>7.0.2</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.40</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.Mindgamesnl</groupId>
+            <artifactId>storm</artifactId>
+            <version>e1f961b480</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>nl.grapjeje</groupId>
             <artifactId>grapjeje-core</artifactId>
             <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/grapjeje-core-1.0.jar</systemPath>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
