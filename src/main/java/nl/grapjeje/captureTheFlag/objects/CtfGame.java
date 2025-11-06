@@ -245,7 +245,10 @@ public class CtfGame {
         this.assignTeams();
         votes.put(BLUE, new HashMap<>());
         votes.put(RED, new HashMap<>());
-        for (CtfPlayer ctfPlayer : this.players) this.openVoteMenu(ctfPlayer);
+        for (CtfPlayer ctfPlayer : this.players) {
+            CtfScoreboard.create(ctfPlayer.getPlayer(), this);
+            this.openVoteMenu(ctfPlayer);
+        }
         Main.getInstance().getScheduler().runTaskLater(Main.getInstance(), this::pickCaptains, 20 * 15);
     }
 
