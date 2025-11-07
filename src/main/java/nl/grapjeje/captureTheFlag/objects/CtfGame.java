@@ -20,6 +20,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static nl.grapjeje.captureTheFlag.enums.Team.BLUE;
 import static nl.grapjeje.captureTheFlag.enums.Team.RED;
@@ -36,16 +37,19 @@ public class CtfGame {
     private final Map<Team, Map<UUID, Integer>> votes = new HashMap<>();
 
     public CtfGame() {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         for (Player p : Bukkit.getOnlinePlayers()) {
-            CtfPlayer.loadOrCreatePlayerModelAsync(p)
-                    .thenAccept(model ->
-                            players.add(CtfPlayer.get(p.getUniqueId(), model))).
-                    exceptionally(ex -> {
+            CompletableFuture<Void> future = CtfPlayer.loadOrCreatePlayerModelAsync(p)
+                    .thenAccept(model -> players.add(CtfPlayer.get(p.getUniqueId(), model)))
+                    .exceptionally(ex -> {
                         ex.printStackTrace();
                         return null;
                     });
+            futures.add(future);
         }
-        Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1);
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1));
     }
 
     // TODO: Verander de namen naar de juiste kleur
