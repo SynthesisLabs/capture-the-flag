@@ -2,21 +2,17 @@ package nl.grapjeje.captureTheFlag.objects;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Team;
+import nl.grapjeje.core.items.Item;
 import nl.grapjeje.core.text.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -31,19 +27,13 @@ public class CtfFlag {
 
     public static void giveToPlayer(CtfPlayer p) {
         Team team = p.getTeam();
-        ItemStack item = (team == Team.RED) ? new ItemStack(Material.RED_WOOL) : new ItemStack(Material.BLUE_WOOL);
-        ItemMeta meta = item.getItemMeta();
 
-        meta.displayName(MessageUtil.filterMessage(team.getColorCode() + team.name() + " Flag"));
-        List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Right click to place the flag").color(NamedTextColor.GRAY));
-        meta.lore(lore);
-
-        NamespacedKey key = new NamespacedKey("ctf", "is_flag");
-        meta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
-
-        item.setItemMeta(meta);
-        p.getPlayer().getInventory().addItem(item);
+        ItemStack flagItem = Item.from(team == Team.RED ? Material.RED_WOOL : Material.BLUE_WOOL)
+                .setName(team.getColorCode() + MessageUtil.capitalizeWords(team.name()) + "'s flag")
+                .setLore(List.of("<gray>Right click to place the flag"))
+                .setPersistentData("is_flag", PersistentDataType.BYTE, (byte) 1)
+                .toBukkit();
+        p.getPlayer().getInventory().addItem(flagItem);
     }
 
     public static void removeFromPlayer(CtfPlayer p) {
@@ -89,11 +79,7 @@ public class CtfFlag {
     }
 
     public static boolean isCtfFlag(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-
-        ItemMeta meta = item.getItemMeta();
-        NamespacedKey key = new NamespacedKey("ctf", "is_flag");
-
-        return meta.getPersistentDataContainer().has(key, PersistentDataType.BYTE);
+        if (item == null) return false;
+        return Item.from(item).hasPersistentData("is_flag");
     }
 }
