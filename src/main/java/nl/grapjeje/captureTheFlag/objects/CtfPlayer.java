@@ -45,6 +45,9 @@ public class CtfPlayer {
     @Setter
     private boolean hasFlag = false;
 
+    @Getter
+    private CtfScoreboard scoreboard;
+
     @Setter
     private Team team;
     @Setter
@@ -54,6 +57,8 @@ public class CtfPlayer {
         this.uuid = uuid;
         this.model = model;
         this.setTeam(Team.NONE);
+
+        this.scoreboard = CtfScoreboard.get(uuid);
     }
 
     public static CtfPlayer get(UUID uuid, PlayerModel model) {
