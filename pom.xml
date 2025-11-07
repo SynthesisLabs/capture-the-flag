@@ -41,11 +41,7 @@
                 <version>3.5.3</version>
                 <configuration>
                     <finalName>${project.artifactId}-${project.version}</finalName>
-                    <artifactSet>
-                        <includes>
-                            <include>nl.grapjeje:grapjeje-core</include>
-                        </includes>
-                    </artifactSet>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                 </configuration>
                 <executions>
                     <execution>
