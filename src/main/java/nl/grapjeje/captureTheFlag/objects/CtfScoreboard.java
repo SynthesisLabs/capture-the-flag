@@ -56,12 +56,19 @@ public class CtfScoreboard {
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.numberFormat(NumberFormat.blank());
 
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<green>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<green>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
+
+        obj.getScore("§7 ").setScore(8);
+        obj.getScore("§f" + player.getName()).setScore(7);
+        obj.getScore("§7  ").setScore(6);
+        obj.getScore("§fScore:").setScore(5);
+        obj.getScore("§9" + bluePoints + "§f - §c" + redPoints).setScore(4);
+        obj.getScore("§7   ").setScore(3);
 
         player.setScoreboard(board);
     }
@@ -83,12 +90,19 @@ public class CtfScoreboard {
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.numberFormat(NumberFormat.blank());
 
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<blue>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
-        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<blue>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
+//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
+
+        obj.getScore("§7 ").setScore(8);
+        obj.getScore("§f" + player.getName()).setScore(7);
+        obj.getScore("§7  ").setScore(6);
+        obj.getScore("§fScore:").setScore(5);
+        obj.getScore("§9" + bluePoints + "§f - §c" + redPoints).setScore(4);
+        obj.getScore("§7   ").setScore(3);
     }
 
     public void tick() {
