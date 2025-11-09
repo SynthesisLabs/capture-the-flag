@@ -1,6 +1,7 @@
 package nl.grapjeje.captureTheFlag.listeners;
 
 import fr.skytasul.glowingentities.GlowingEntities;
+import nl.grapjeje.captureTheFlag.objects.CtfFlag;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.core.GlowUtil;
 import org.bukkit.Bukkit;
@@ -9,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 
 import static nl.grapjeje.captureTheFlag.enums.Team.RED;
 
@@ -16,7 +18,14 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
+        this.checkForFlagItem(e);
         this.setupGlowing(e);
+    }
+
+    private void checkForFlagItem(PlayerJoinEvent e) {
+        for (ItemStack item : e.getPlayer().getInventory().getContents()) {
+            if (CtfFlag.isCtfFlag(item)) item.setAmount(0);
+        }
     }
 
     private void setupGlowing(PlayerJoinEvent e) {
