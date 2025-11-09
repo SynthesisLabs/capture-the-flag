@@ -1,15 +1,26 @@
 package nl.grapjeje.captureTheFlag.objects;
 
-import org.bukkit.Material;
-import org.bukkit.entity.Item;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.NotNull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import nl.grapjeje.core.registry.AutoRegistry;
+import nl.grapjeje.core.registry.Registry;
 
-import static nl.grapjeje.captureTheFlag.enums.Kit.*;
-
+@AutoRegistry
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class CtfKit {
+    private final CtfPlayer player;
+
+    public static CtfKit get(CtfPlayer player) {
+        return Registry.get(
+                CtfKit.class,
+                player.getPlayer().getUniqueId().toString(),
+                (args) -> new CtfKit((CtfPlayer) args[0]),
+                player
+        );
+    }
+
 //    public static void apply(@NotNull CtfPlayer player) {
 //        switch (player.getKit()){
 //            case SCOUT -> {
