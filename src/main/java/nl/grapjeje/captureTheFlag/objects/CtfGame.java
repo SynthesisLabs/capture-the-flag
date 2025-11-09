@@ -1,5 +1,6 @@
 package nl.grapjeje.captureTheFlag.objects;
 
+import fr.skytasul.glowingentities.GlowingEntities;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -7,6 +8,7 @@ import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.GameStatus;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
+import nl.grapjeje.core.GlowUtil;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -16,8 +18,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +52,6 @@ public class CtfGame {
                 .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1));
     }
 
-    // TODO: Verander de namen naar de juiste kleur
     // TODO: Voeg leave en kill logica toe - Dat de vlag dropt
 
     private void tick() {
@@ -62,11 +61,26 @@ public class CtfGame {
             Player player = ctfPlayer.getPlayer();
             UUID uuid = player.getUniqueId();
 
-            if (ctfPlayer.isHasFlag()) {
-                if (!player.hasPotionEffect(PotionEffectType.GLOWING))
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, Integer.MAX_VALUE, 1, true, false));
-            } else if (player.hasPotionEffect(PotionEffectType.GLOWING))
-                player.removePotionEffect(PotionEffectType.GLOWING);
+            // Add name color
+            Component coloredName = MessageUtil.filterMessage(ctfPlayer.getTeam().getColorCode() + player.getName());
+            player.displayName(coloredName);
+            player.playerListName(coloredName);
+
+            try {
+                GlowingEntities glowingEntities = GlowUtil.getInstance().getGlowingEntities();
+                if (ctfPlayer.isHasFlag()) {
+                    ChatColor glowColor = ctfPlayer.getTeam() == RED ? ChatColor.RED : ChatColor.BLUE;
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        glowingEntities.setGlowing(player, onlinePlayer, glowColor);
+                    }
+                } else {
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        glowingEntities.unsetGlowing(player, onlinePlayer);
+                    }
+                }
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
 
             final long captureTime = 3000;
             final double radius = 3.0;
@@ -77,6 +91,7 @@ public class CtfGame {
                 Location playerLoc = player.getLocation();
                 if (!playerLoc.getWorld().equals(flagLoc.getWorld())) return;
 
+                // Logic to steal a flag
                 if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag()) {
                     if (playerLoc.distance(flagLoc) <= radius) {
                         long now = System.currentTimeMillis();
@@ -103,6 +118,7 @@ public class CtfGame {
                     }
                 }
 
+                // Logic to score a point
                 if (ctfPlayer.isHasFlag() && ctfPlayer.getTeam() == team) {
                     if (playerLoc.distance(flagLoc) <= radius) {
                         long now = System.currentTimeMillis();
@@ -131,6 +147,7 @@ public class CtfGame {
                         }
                     } else if (captureProgress.containsKey(uuid)) {
                         captureProgress.remove(uuid);
+                        player.sendActionBar(MessageUtil.filterMessage("<gray>Return cancelled"));
                     }
                 }
             });
@@ -256,6 +273,12 @@ public class CtfGame {
         Main.getInstance().getScheduler().runTaskLater(Main.getInstance(), this::pickCaptains, 20 * 15);
     }
 
+    public void stop() {
+        Bukkit.getScoreboardManager().getMainScoreboard().getTeams().stream()
+                .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
+                .forEach(org.bukkit.scoreboard.Team::unregister);
+    }
+
     private void openVoteMenu(CtfPlayer ctfPlayer) {
         Player player = ctfPlayer.getPlayer();
         List<Player> teamMates = this.players.stream()
@@ -306,14 +329,14 @@ public class CtfGame {
                                     if (p.getTeam() == Team.NONE) continue;
                                     Bukkit.getScheduler().runTask(Main.getInstance(), () ->
                                             p.getPlayer().sendMessage(MessageUtil.filterMessage(
-                                            "<primary><bold>🏆 " + captain.getName() +
-                                                    "<!bold> has been chosen as captain for team <bold>" + team
-                                    )));
+                                                    "<primary><bold>🏆 " + captain.getName() +
+                                                            "<!bold> has been chosen as captain for team <bold>" + team
+                                            )));
                                 }
                                 Bukkit.getScheduler().runTask(Main.getInstance(), () ->
                                         captain.sendMessage(
-                                        MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
-                                ));
+                                                MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
+                                        ));
                                 CtfFlag.giveToPlayer(CtfPlayer.get(captain.getUniqueId(), model));
                             }).exceptionally(ex -> {
                                 ex.printStackTrace();

@@ -1,8 +1,6 @@
 package nl.grapjeje.captureTheFlag;
 
-import nl.grapjeje.captureTheFlag.listeners.CommandListener;
-import nl.grapjeje.captureTheFlag.listeners.PlaceFlagListener;
-import nl.grapjeje.captureTheFlag.listeners.VoteCaptainListener;
+import nl.grapjeje.captureTheFlag.listeners.*;
 
 public class ListenerManager {
 
@@ -12,5 +10,7 @@ public class ListenerManager {
         // Game Listeners
         Main.getFramework().registerListener(VoteCaptainListener::new);
         Main.getFramework().registerListener(PlaceFlagListener::new);
+        Main.getFramework().registerListener(PlayerLeaveListener::new);
+        Main.getFramework().registerListener(PlayerJoinListener::new);
     }
 }

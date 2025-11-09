@@ -51,6 +51,8 @@ public class CtfPlayer {
     @Setter
     private Team team;
     @Setter
+    private org.bukkit.scoreboard.Team scoreboardTeam;
+    @Setter
     private Kit kit;
 
     CtfPlayer(UUID uuid, PlayerModel model) {
@@ -112,16 +114,6 @@ public class CtfPlayer {
     public double addCoins(double coins) {
         this.coins += coins;
         return this.getCoins();
-    }
-
-    // Todo: Swen Scoreboard, import into
-    private String getTeamName(Team team) {
-        team.getColorCode();
-        return switch (team) {
-            case RED -> MessageUtil.filterMessageString("<red>RED");
-            case BLUE -> MessageUtil.filterMessageString("<blue>BLUE");
-            default -> MessageUtil.filterMessageString("<gray>NONE");
-        };
     }
 
     public static CompletableFuture<PlayerModel> loadOrCreatePlayerModelAsync(Player player) {
