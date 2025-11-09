@@ -44,6 +44,8 @@ public class CtfPlayer {
     private boolean captain = false;
     @Setter
     private boolean hasFlag = false;
+    @Setter
+    private boolean isDeath = false;
 
     @Getter
     private CtfScoreboard scoreboard;

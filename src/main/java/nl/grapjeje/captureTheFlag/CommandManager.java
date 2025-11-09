@@ -1,15 +1,9 @@
 package nl.grapjeje.captureTheFlag;
 
+import nl.grapjeje.captureTheFlag.commands.KitCommand;
 import nl.grapjeje.captureTheFlag.commands.PlaceFlagCommand;
 import nl.grapjeje.captureTheFlag.commands.TestCommand;
 import nl.grapjeje.captureTheFlag.commands.vanilla.*;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.plugin.PluginManager;
-
-import java.lang.reflect.Field;
 
 public class CommandManager {
 
@@ -22,6 +16,8 @@ public class CommandManager {
         Main.getFramework().registerCommand(McTmCommand::new);
         Main.getFramework().registerCommand(McTriggerCommand::new);
         Main.getFramework().registerCommand(McWCommand::new);
+
+        Main.getFramework().registerCommand(KitCommand::new);
 
         // Test command
         Main.getFramework().registerCommand(TestCommand::new);

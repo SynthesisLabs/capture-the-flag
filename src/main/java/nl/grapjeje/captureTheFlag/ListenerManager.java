@@ -12,5 +12,6 @@ public class ListenerManager {
         Main.getFramework().registerListener(PlaceFlagListener::new);
         Main.getFramework().registerListener(PlayerLeaveListener::new);
         Main.getFramework().registerListener(PlayerJoinListener::new);
+        Main.getFramework().registerListener(PlayerDeathListener::new);
     }
 }

@@ -3,8 +3,19 @@ package nl.grapjeje.captureTheFlag.objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
+import nl.grapjeje.captureTheFlag.Main;
+import nl.grapjeje.captureTheFlag.enums.Kit;
+import nl.grapjeje.core.gui.Gui;
+import nl.grapjeje.core.gui.GuiButton;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
+import nl.grapjeje.core.text.MessageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryType;
+
+import java.util.Arrays;
 
 @AutoRegistry
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -19,6 +30,31 @@ public class CtfKit {
                 (args) -> new CtfKit((CtfPlayer) args[0]),
                 player
         );
+    }
+
+    public void open() {
+        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Kits"));
+        builder.withSize(27);
+
+        for (int i = 0; i < Kit.values().length; i++) {
+            int finalI = i;
+            Arrays.stream(Kit.values()).forEach(kit -> {
+                GuiButton button = GuiButton.builder()
+                        .withMaterial(kit.getMaterial())
+                        .withName(MessageUtil.filterMessage(kit.getColorCode() + MessageUtil.capitalizeWords(kit.name().toLowerCase())))
+                        .build();
+                builder.withButton(finalI, button);
+            });
+        }
+
+        Gui gui = builder.build();
+        this.registerGui(gui);
+        gui.open(player.getPlayer());
+    }
+
+    protected void registerGui(Gui gui) {
+        if (gui instanceof Listener listener)
+            Bukkit.getServer().getPluginManager().registerEvents(listener, Main.getInstance());
     }
 
 //    public static void apply(@NotNull CtfPlayer player) {
