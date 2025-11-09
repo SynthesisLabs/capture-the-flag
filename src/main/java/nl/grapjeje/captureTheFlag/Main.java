@@ -48,7 +48,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        this.getGame().stop();
+        if (this.getGame() != null) this.getGame().stop();
         for (World world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
                 if (entity instanceof ArmorStand as && as.getCustomName() != null

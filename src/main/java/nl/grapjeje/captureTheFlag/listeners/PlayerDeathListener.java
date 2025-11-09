@@ -2,6 +2,7 @@ package nl.grapjeje.captureTheFlag.listeners;
 
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,10 +17,7 @@ public class PlayerDeathListener implements Listener {
         CtfPlayer.loadOrCreatePlayerModelAsync(player)
                 .thenAcceptAsync(model -> {
                     CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
-                    boolean inGame;
-                    if (ctfPlayer.getTeam() == Team.RED || ctfPlayer.getTeam() == Team.BLUE)
-                        inGame = true;
-                    else inGame = false;
+                    boolean inGame = ctfPlayer.getTeam() == Team.RED || ctfPlayer.getTeam() == Team.BLUE;
 
                     if (!inGame) return;
                     ctfPlayer.setDeath(true);

@@ -5,6 +5,7 @@ import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.command.Command;
 import nl.grapjeje.core.command.CommandSourceStack;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class KitCommand implements Command {

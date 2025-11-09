@@ -63,6 +63,8 @@ public class CtfFlag {
                                 cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
                             else
                                 cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + team.getColorCode() + team.name() + " <gray>has been successfully placed!"));
+
+                            if (cp.getKit() == null) CtfKit.get(cp).open();
                         });
                     }).exceptionally(ex -> {
                         ex.printStackTrace();

@@ -33,20 +33,19 @@ public class CtfKit {
     }
 
     public void open() {
-        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Kits"));
+        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Select a kit"));
         builder.withSize(27);
 
-        for (int i = 0; i < Kit.values().length; i++) {
-            int finalI = i;
-            Arrays.stream(Kit.values()).forEach(kit -> {
-                GuiButton button = GuiButton.builder()
-                        .withMaterial(kit.getMaterial())
-                        .withName(MessageUtil.filterMessage(kit.getColorCode() + MessageUtil.capitalizeWords(kit.name().toLowerCase())))
-                        .build();
-                builder.withButton(finalI, button);
-            });
-        }
+        Kit[] kits = Kit.values();
+        for (int i = 0; i < kits.length; i++) {
+            Kit kit = kits[i];
+            GuiButton button = GuiButton.builder()
+                    .withMaterial(kit.getMaterial())
+                    .withName(MessageUtil.filterMessage(kit.getColorCode() + MessageUtil.capitalizeWords(kit.name().toLowerCase())))
+                    .build();
 
+            builder.withButton(i, button);
+        }
         Gui gui = builder.build();
         this.registerGui(gui);
         gui.open(player.getPlayer());
