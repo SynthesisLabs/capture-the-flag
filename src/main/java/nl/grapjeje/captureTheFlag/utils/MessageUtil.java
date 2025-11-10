@@ -9,12 +9,6 @@ public class MessageUtil {
         return MiniMessage.miniMessage().deserialize(filterMessageString(message));
     }
 
-    public static String filterMessageStringLegacy(String message) {
-        return LegacyComponentSerializer.legacySection().serialize(
-                MiniMessage.miniMessage().deserialize(filterMessageString(message))
-        );
-    }
-
     public static String filterMessageString(String message) {
         message = message.replace("<primary>", "<color:" + ColorUtil.PRIMARY.getColor() + ">");
         return nl.grapjeje.core.text.MessageUtil.filterMessageString(message);
