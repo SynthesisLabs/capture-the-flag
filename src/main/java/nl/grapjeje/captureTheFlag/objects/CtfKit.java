@@ -15,8 +15,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
 
-import java.util.Arrays;
-
 @AutoRegistry
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
@@ -43,6 +41,7 @@ public class CtfKit {
                     .withMaterial(kit.getMaterial())
                     .withName(MessageUtil.filterMessage(kit.getColorCode() + MessageUtil.capitalizeWords(kit.name().toLowerCase())))
                     .withLore(MessageUtil.filterMessage("<gray>Click to equip kit"))
+                    .withClickEvent((g, p, c) -> this.apply(kit))
                     .build();
 
             builder.withButton(i, button);
@@ -55,6 +54,11 @@ public class CtfKit {
     protected void registerGui(Gui gui) {
         if (gui instanceof Listener listener)
             Bukkit.getServer().getPluginManager().registerEvents(listener, Main.getInstance());
+    }
+
+    private void apply(Kit kit) {
+        // TODO MARTIN: Let players get there kit
+        player.getPlayer().closeInventory();
     }
 
 //    public static void apply(@NotNull CtfPlayer player) {

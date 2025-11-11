@@ -369,6 +369,8 @@ public class CtfGame {
         Bukkit.getScoreboardManager().getMainScoreboard().getTeams().stream()
                 .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
                 .forEach(org.bukkit.scoreboard.Team::unregister);
+
+        // TODO SWEN: Here
     }
 
     private void openVoteMenu(CtfPlayer ctfPlayer) {

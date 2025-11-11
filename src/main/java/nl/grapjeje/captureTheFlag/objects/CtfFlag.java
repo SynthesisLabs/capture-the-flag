@@ -47,29 +47,26 @@ public class CtfFlag {
     public void place(CtfPlayer p, Location l) {
         Team captainTeam = p.getTeam();
         placed = true;
-        location = l.set(l.getX() + 0.5, l.getY() + 1, l.getZ() + 0.5);
+        location = l.clone().add(0.5, 1, 0.5);
         Main.getInstance().getGame().getGameFlags().put(captainTeam, this);
         removeFromPlayer(p);
+
         p.getPlayer().sendMessage(MessageUtil.filterMessage("<green>The flag has been successfully placed!"));
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            CtfPlayer.loadOrCreatePlayerModelAsync(player)
-                    .thenAccept(model -> {
-                        CtfPlayer cp = CtfPlayer.get(player.getUniqueId(), model);
-                        if (cp == p) return;
-                        Team team = cp.getTeam();
-                        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                            if (team == captainTeam)
-                                cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
-                            else
-                                cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + team.getColorCode() + team.name() + " <gray>has been successfully placed!"));
-
-                            if (cp.getKit() == null) CtfKit.get(cp).open();
-                        });
-                    }).exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });
+            CtfPlayer.loadOrCreatePlayerModelAsync(player).thenAccept(model -> {
+                CtfPlayer cp = CtfPlayer.get(player.getUniqueId(), model);
+                Team team = cp.getTeam();
+                Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                    if (team == captainTeam)
+                        cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
+                    else cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + captainTeam.getColorCode() + captainTeam.name() + " <gray>has been successfully placed!"));
+                    CtfKit.get(cp).open();
+                });
+            }).exceptionally(ex -> {
+                ex.printStackTrace();
+                return null;
+            });
         }
     }
 

@@ -1,5 +1,6 @@
 package nl.grapjeje.captureTheFlag.commands;
 
+import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfKit;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
@@ -30,8 +31,10 @@ public class KitCommand implements Command {
                         return;
                     }
 
-                    CtfKit kit = CtfKit.get(ctfPlayer);
-                    kit.open();
+                    Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                        CtfKit kit = CtfKit.get(ctfPlayer);
+                        kit.open();
+                    });
                 });
     }
 }

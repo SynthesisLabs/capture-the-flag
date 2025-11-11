@@ -58,6 +58,8 @@ public final class Main extends JavaPlugin {
             }
         }
 
+        // TODO SWEN: Maybe here if the game crashes
+
         if (!StormDatabase.getInstance().isUsingExternalStorm() && nl.grapjeje.core.Main.getDb() != null)
             nl.grapjeje.core.Main.getDb().close();
     }
