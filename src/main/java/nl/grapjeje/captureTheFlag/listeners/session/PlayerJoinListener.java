@@ -3,6 +3,7 @@ package nl.grapjeje.captureTheFlag.listeners.session;
 import fr.skytasul.glowingentities.GlowingEntities;
 import nl.grapjeje.captureTheFlag.objects.CtfFlag;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
+import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,8 +19,13 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
+        this.sendJoinMessage(e);
         this.checkForFlagItem(e);
         this.setupGlowing(e);
+    }
+
+    private void sendJoinMessage(PlayerJoinEvent e) {
+        e.joinMessage(MessageUtil.filterMessage("<gray>[<green>+<gray>] <white>" + e.getPlayer().getName()));
     }
 
     private void checkForFlagItem(PlayerJoinEvent e) {
