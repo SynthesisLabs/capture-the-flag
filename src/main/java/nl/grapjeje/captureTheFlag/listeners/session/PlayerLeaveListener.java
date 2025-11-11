@@ -1,4 +1,4 @@
-package nl.grapjeje.captureTheFlag.listeners;
+package nl.grapjeje.captureTheFlag.listeners.session;
 
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;

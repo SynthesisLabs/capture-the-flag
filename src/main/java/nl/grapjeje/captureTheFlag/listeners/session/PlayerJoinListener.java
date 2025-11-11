@@ -1,4 +1,4 @@
-package nl.grapjeje.captureTheFlag.listeners;
+package nl.grapjeje.captureTheFlag.listeners.session;
 
 import fr.skytasul.glowingentities.GlowingEntities;
 import nl.grapjeje.captureTheFlag.objects.CtfFlag;
