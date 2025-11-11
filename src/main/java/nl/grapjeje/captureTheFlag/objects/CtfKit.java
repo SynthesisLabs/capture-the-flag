@@ -42,6 +42,7 @@ public class CtfKit {
             GuiButton button = GuiButton.builder()
                     .withMaterial(kit.getMaterial())
                     .withName(MessageUtil.filterMessage(kit.getColorCode() + MessageUtil.capitalizeWords(kit.name().toLowerCase())))
+                    .withLore(MessageUtil.filterMessage("<gray>Click to equip kit"))
                     .build();
 
             builder.withButton(i, button);
