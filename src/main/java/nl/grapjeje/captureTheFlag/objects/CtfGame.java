@@ -86,81 +86,83 @@ public class CtfGame {
                 e.printStackTrace();
             }
 
-            Location playerLoc = player.getLocation();
-            gameFlags.forEach((team, flag) -> {
-                Location flagLoc = flag.getLocation();
-                if (flagLoc == null || !playerLoc.getWorld().equals(flagLoc.getWorld())) return;
+            if (!ctfPlayer.isDeath() && player.getGameMode() != GameMode.SPECTATOR) {
+                Location playerLoc = player.getLocation();
+                gameFlags.forEach((team, flag) -> {
+                    Location flagLoc = flag.getLocation();
+                    if (flagLoc == null || !playerLoc.getWorld().equals(flagLoc.getWorld())) return;
 
-                // Steal enemy flag
-                if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag() && !ctfPlayer.isDeath()) {
-                    if (playerLoc.distance(flagLoc) <= radius) {
-                        long now = System.currentTimeMillis();
-                        captureProgress.putIfAbsent(uuid, now);
-                        long elapsed = now - captureProgress.get(uuid);
+                    // Steal enemy flag
+                    if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag()) {
+                        if (playerLoc.distance(flagLoc) <= radius) {
+                            long now = System.currentTimeMillis();
+                            captureProgress.putIfAbsent(uuid, now);
+                            long elapsed = now - captureProgress.get(uuid);
 
-                        double progress = Math.min(1.0, elapsed / (double) captureTime);
-                        int totalBars = 20;
-                        int filledBars = (int) (progress * totalBars);
-                        StringBuilder bar = new StringBuilder();
-                        for (int i = 0; i < totalBars; i++) bar.append(i < filledBars ? "<primary>|" : "<gray>|");
-                        player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
+                            double progress = Math.min(1.0, elapsed / (double) captureTime);
+                            int totalBars = 20;
+                            int filledBars = (int) (progress * totalBars);
+                            StringBuilder bar = new StringBuilder();
+                            for (int i = 0; i < totalBars; i++) bar.append(i < filledBars ? "<primary>|" : "<gray>|");
+                            player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
 
-                        if (elapsed >= captureTime) {
+                            if (elapsed >= captureTime) {
+                                captureProgress.remove(uuid);
+                                ctfPlayer.setHasFlag(true);
+                                flag.setStolen(true);
+
+                                if (flagLoc.getBlock().getType() == Material.BLUE_WOOL || flagLoc.getBlock().getType() == Material.RED_WOOL)
+                                    flagLoc.getBlock().setType(Material.AIR);
+
+                                player.sendActionBar(MessageUtil.filterMessage("<primary>You captured the flag!"));
+                            }
+                        } else if (captureProgress.containsKey(uuid)) {
                             captureProgress.remove(uuid);
-                            ctfPlayer.setHasFlag(true);
-                            flag.setStolen(true);
-
-                            if (flagLoc.getBlock().getType() == Material.BLUE_WOOL || flagLoc.getBlock().getType() == Material.RED_WOOL)
-                                flagLoc.getBlock().setType(Material.AIR);
-
-                            player.sendActionBar(MessageUtil.filterMessage("<primary>You captured the flag!"));
+                            player.sendActionBar(MessageUtil.filterMessage("<gray>Capture cancelled"));
                         }
-                    } else if (captureProgress.containsKey(uuid)) {
-                        captureProgress.remove(uuid);
-                        player.sendActionBar(MessageUtil.filterMessage("<gray>Capture cancelled"));
                     }
-                }
 
-                // Return own flag / score
-                if (ctfPlayer.isHasFlag() && ctfPlayer.getTeam() == team && !ctfPlayer.isDeath()) {
-                    if (playerLoc.distance(flagLoc) <= radius) {
-                        long now = System.currentTimeMillis();
-                        captureProgress.putIfAbsent(uuid, now);
-                        long elapsed = now - captureProgress.get(uuid);
+                    // Return own flag / score
+                    if (ctfPlayer.isHasFlag() && ctfPlayer.getTeam() == team) {
+                        if (playerLoc.distance(flagLoc) <= radius) {
+                            long now = System.currentTimeMillis();
+                            captureProgress.putIfAbsent(uuid, now);
+                            long elapsed = now - captureProgress.get(uuid);
 
-                        double progress = Math.min(1.0, elapsed / (double) captureTime);
-                        int totalBars = 20;
-                        int filledBars = (int) (progress * totalBars);
-                        StringBuilder bar = new StringBuilder();
-                        for (int i = 0; i < totalBars; i++) bar.append(i < filledBars ? "<primary>|" : "<gray>|");
-                        player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
+                            double progress = Math.min(1.0, elapsed / (double) captureTime);
+                            int totalBars = 20;
+                            int filledBars = (int) (progress * totalBars);
+                            StringBuilder bar = new StringBuilder();
+                            for (int i = 0; i < totalBars; i++) bar.append(i < filledBars ? "<primary>|" : "<gray>|");
+                            player.sendActionBar(MessageUtil.filterMessage(bar.toString()));
 
-                        if (elapsed >= captureTime) {
+                            if (elapsed >= captureTime) {
+                                captureProgress.remove(uuid);
+                                ctfPlayer.setHasFlag(false);
+                                flag.setStolen(false);
+                                player.sendActionBar(MessageUtil.filterMessage("<primary>You returned the flag!"));
+
+                                int teamPoints = points.getOrDefault(ctfPlayer.getTeam(), 0) + 1;
+                                points.put(ctfPlayer.getTeam(), teamPoints);
+
+                                Bukkit.broadcast(MessageUtil.filterMessage(
+                                        "<gray><bold>🏁 <!bold>Team " + ctfPlayer.getTeam() +
+                                                "<gray> scored! (" +
+                                                "<primary>" + points.getOrDefault(BLUE, 0) +
+                                                "<gray> - <primary>" + points.getOrDefault(RED, 0) +
+                                                "<gray>)"
+                                ));
+
+                                this.respawnFlagHologram(flag, ctfPlayer.getTeam());
+                            }
+                        } else if (captureProgress.containsKey(uuid)) {
                             captureProgress.remove(uuid);
-                            ctfPlayer.setHasFlag(false);
-                            flag.setStolen(false);
-                            player.sendActionBar(MessageUtil.filterMessage("<primary>You returned the flag!"));
-
-                            int teamPoints = points.getOrDefault(ctfPlayer.getTeam(), 0) + 1;
-                            points.put(ctfPlayer.getTeam(), teamPoints);
-
-                            Bukkit.broadcast(MessageUtil.filterMessage(
-                                    "<gray><bold>🏁 <!bold>Team " + ctfPlayer.getTeam() +
-                                            "<gray> scored! (" +
-                                            "<primary>" + points.getOrDefault(BLUE, 0) +
-                                            "<gray> - <primary>" + points.getOrDefault(RED, 0) +
-                                            "<gray>)"
-                            ));
-
-                            this.respawnFlagHologram(flag, ctfPlayer.getTeam());
+                            player.sendActionBar(MessageUtil.filterMessage("<gray>Return cancelled"));
                         }
-                    } else if (captureProgress.containsKey(uuid)) {
-                        captureProgress.remove(uuid);
-                        player.sendActionBar(MessageUtil.filterMessage("<gray>Return cancelled"));
                     }
-                }
-            });
-            this.handleDroppedFlags(player, ctfPlayer);
+                });
+                this.handleDroppedFlags(player, ctfPlayer);
+            }
         }
     }
 
@@ -196,16 +198,17 @@ public class CtfGame {
         long now = System.currentTimeMillis();
         Iterator<Map.Entry<Team, DroppedFlag>> iter = droppedFlags.entrySet().iterator();
 
-        while(iter.hasNext()) {
+        while (iter.hasNext()) {
             Map.Entry<Team, DroppedFlag> entry = iter.next();
             DroppedFlag df = entry.getValue();
             double radius = 2.0;
 
-            int remaining = (int) Math.max(0, 20 - (now - df.dropTime)/1000);
-            if (df.stand != null) df.stand.customName(MessageUtil.filterMessage("<primary>Flag returns in " + remaining + "s"));
+            int remaining = (int) Math.max(0, 20 - (now - df.dropTime) / 1000);
+            if (df.stand != null)
+                df.stand.customName(MessageUtil.filterMessage("<primary>Flag returns in " + remaining + "s"));
 
             if (now - df.dropTime >= 20_000) {
-                if(df.stand != null) df.stand.remove();
+                if (df.stand != null) df.stand.remove();
                 gameFlags.get(df.team).setStolen(false);
                 iter.remove();
                 Bukkit.broadcast(MessageUtil.filterMessage("<gray>The " + df.team + " flag returned to base!"));
@@ -237,11 +240,11 @@ public class CtfGame {
         double radius = 2.0;
         Color color = team == RED ? Color.RED : Color.BLUE;
         Particle.DustOptions dust = new Particle.DustOptions(color, 1.0f);
-        for(int i=0;i<points;i++) {
-            double angle = 2*Math.PI*i/points;
-            double x = Math.cos(angle)*radius;
-            double z = Math.sin(angle)*radius;
-            loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(x,0.1,z), 1, dust);
+        for (int i = 0; i < points; i++) {
+            double angle = 2 * Math.PI * i / points;
+            double x = Math.cos(angle) * radius;
+            double z = Math.sin(angle) * radius;
+            loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(x, 0.1, z), 1, dust);
         }
     }
 
