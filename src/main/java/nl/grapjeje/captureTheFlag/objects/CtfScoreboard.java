@@ -105,6 +105,12 @@ public class CtfScoreboard {
         obj.getScore("§7   ").setScore(3);
     }
 
+    public void remove(Player player, CtfGame game) {
+        if (player == null || game == null) return;
+        Objective board = player.getScoreboard().getObjective(OBJECTIVE_NAME);
+        if(board != null) board.unregister();
+    }
+
     public void tick() {
         update();
     }

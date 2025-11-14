@@ -1,6 +1,7 @@
 package nl.grapjeje.captureTheFlag.listeners.session;
 
 import nl.grapjeje.captureTheFlag.Main;
+import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import org.bukkit.entity.Player;
@@ -9,6 +10,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerLeaveListener implements Listener {
+
+    private CtfGame game;
 
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
@@ -20,10 +23,11 @@ public class PlayerLeaveListener implements Listener {
                 .thenAccept(model -> {
                     CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
                     if (ctfPlayer == null || !Main.getInstance().getGame().getPlayers().contains(ctfPlayer)) return;
+                    this.game = Main.getInstance().getGame();
                     Main.getInstance().getGame().getPlayers().remove(ctfPlayer);
-                });
+                    ctfPlayer.getScoreboard().remove((Player) ctfPlayer, game);
 
-        // TODO SWEN: Maybe here if the player leaves
+                });
     }
 
     private void sendQuitMessage(PlayerQuitEvent e) {
