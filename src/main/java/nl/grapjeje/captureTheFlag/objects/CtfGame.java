@@ -9,11 +9,15 @@ import nl.grapjeje.captureTheFlag.enums.GameStatus;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.GlowUtil;
+import nl.grapjeje.core.gui.Gui;
+import nl.grapjeje.core.gui.GuiButton;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -379,31 +383,36 @@ public class CtfGame {
     }
 
     private void openVoteMenu(CtfPlayer ctfPlayer) {
+        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Vote your captain"));
+        builder.withSize(27);
+
         Player player = ctfPlayer.getPlayer();
         List<Player> teamMates = this.players.stream()
                 .filter(p -> p.getTeam() == ctfPlayer.getTeam())
                 .map(CtfPlayer::getPlayer).toList();
-        Inventory inv = Bukkit.createInventory(null, 27, Component.text("Vote your captain"));
-        ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta fillerMeta = filler.getItemMeta();
-        fillerMeta.displayName(Component.text(" "));
-        filler.setItemMeta(fillerMeta);
-        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, filler);
-        int slot = 0;
-        for (Player mate : teamMates) {
-            ItemStack skull = createPlayerHead(mate);
-            inv.setItem(slot++, skull);
-        }
-        player.openInventory(inv);
-    }
 
-    private ItemStack createPlayerHead(Player player) {
-        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
-        meta.setOwningPlayer(player);
-        meta.displayName(Component.text(player.getName()));
-        skull.setItemMeta(meta);
-        return skull;
+        for (int i = 0; i < teamMates.size(); i++) {
+            Player mate = teamMates.get(i);
+            final UUID mateId = mate.getUniqueId();
+            final String mateName = mate.getName();
+
+            GuiButton button = GuiButton.builder()
+                    .withMaterial(Material.PLAYER_HEAD)
+                    .withName(MessageUtil.filterMessage("<primary>" + mateName))
+                    .withLore(MessageUtil.filterMessage("<gray>Click to vote for your team captain"))
+                    .withClickEvent((g, p, c) -> {
+                        Main.getInstance().getGame().addVote(ctfPlayer.getTeam(), mateId);
+                        p.closeInventory();
+                        p.sendMessage(MessageUtil.filterMessage("<gray>You voted for <primary>" + mateName));
+                    })
+                    .build();
+
+            builder.withButton(i, button);
+        }
+        builder.withFiller(GuiButton.getFiller());
+        Gui gui = builder.build();
+        gui.register();
+        gui.open(player.getPlayer());
     }
 
     public void addVote(Team team, UUID playerId) {

@@ -47,13 +47,8 @@ public class CtfKit {
             builder.withButton(i, button);
         }
         Gui gui = builder.build();
-        this.registerGui(gui);
+        gui.register();
         gui.open(player.getPlayer());
-    }
-
-    protected void registerGui(Gui gui) {
-        if (gui instanceof Listener listener)
-            Bukkit.getServer().getPluginManager().registerEvents(listener, Main.getInstance());
     }
 
     private void apply(Kit kit) {
