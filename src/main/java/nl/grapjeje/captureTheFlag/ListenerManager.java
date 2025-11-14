@@ -12,7 +12,6 @@ public class ListenerManager {
         Main.getFramework().registerListener(CommandListener::new);
 
         // Game Listeners
-//        Main.getFramework().registerListener(VoteCaptainListener::new);
         Main.getFramework().registerListener(PlaceFlagListener::new);
         Main.getFramework().registerListener(PlayerLeaveListener::new);
         Main.getFramework().registerListener(PlayerJoinListener::new);

@@ -57,8 +57,33 @@ public class CtfGame {
                 .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1));
     }
 
+    // ===== Game Lifecycle =====
+    public void start() {
+        if (status == GameStatus.STARTED) return;
+        this.setStatus(GameStatus.STARTED);
+        this.assignTeams();
+        votes.put(BLUE, new HashMap<>());
+        votes.put(RED, new HashMap<>());
+        for (CtfPlayer ctfPlayer : this.players) {
+            ctfPlayer.getScoreboard().create(ctfPlayer.getPlayer(), this);
+            this.openVoteMenu(ctfPlayer);
+        }
+        Main.getInstance().getScheduler().runTaskLater(Main.getInstance(), this::pickCaptains, 20 * 15);
+    }
+
+    public void stop() {
+        Bukkit.getScoreboardManager().getMainScoreboard().getTeams().stream()
+                .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
+                .forEach(org.bukkit.scoreboard.Team::unregister);
+
+        for (CtfPlayer ctfPlayer : this.players) {
+            ctfPlayer.getScoreboard().remove(ctfPlayer.getPlayer(), this);
+        }
+    }
+
     private void tick() {
         this.start();
+        this.handleAllDroppedFlags();
         this.showFlag();
 
         final long captureTime = 3000;
@@ -97,7 +122,7 @@ public class CtfGame {
                     if (flagLoc == null || !playerLoc.getWorld().equals(flagLoc.getWorld())) return;
 
                     // Steal enemy flag
-                    if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag()) {
+                    if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag() && !flag.isStolen()) {
                         if (playerLoc.distance(flagLoc) <= radius) {
                             long now = System.currentTimeMillis();
                             captureProgress.putIfAbsent(uuid, now);
@@ -144,6 +169,7 @@ public class CtfGame {
                                 captureProgress.remove(uuid);
                                 ctfPlayer.setHasFlag(false);
                                 flag.setStolen(false);
+                                flag.setDropped(false);
                                 player.sendActionBar(MessageUtil.filterMessage("<primary>You returned the flag!"));
 
                                 int teamPoints = points.getOrDefault(ctfPlayer.getTeam(), 0) + 1;
@@ -157,7 +183,8 @@ public class CtfGame {
                                                 "<gray>)"
                                 ));
 
-                                this.respawnFlagHologram(flag, ctfPlayer.getTeam());
+                                this.respawnFlagHologram(flag, team);
+                                droppedFlags.remove(team);
                             }
                         } else if (captureProgress.containsKey(uuid)) {
                             captureProgress.remove(uuid);
@@ -170,88 +197,96 @@ public class CtfGame {
         }
     }
 
-    public class DroppedFlag {
-        Location location;
-        Team team;
-        long dropTime;
-        ArmorStand stand;
-
-        public DroppedFlag(Location loc, Team team) {
-            this.location = loc;
-            this.team = team;
-            this.dropTime = System.currentTimeMillis();
-            this.stand = spawnFlagStand(loc, team);
+    // ===== Team Management =====
+    private void assignTeams() {
+        int blueCount = 0, redCount = 0;
+        for (CtfPlayer player : this.players) {
+            if (player.getTeam() != Team.NONE) continue;
+            if (blueCount <= redCount) {
+                player.setTeam(BLUE);
+                blueCount++;
+            } else {
+                player.setTeam(RED);
+                redCount++;
+            }
         }
     }
 
-    private ArmorStand spawnFlagStand(Location loc, Team team) {
-        ArmorStand stand = loc.getWorld().spawn(loc.clone().add(0, 0.2, 0), ArmorStand.class, a -> {
-            a.setInvisible(true);
-            a.setMarker(true);
-            a.setCustomNameVisible(true);
-            a.customName(MessageUtil.filterMessage("<primary>Flag here!"));
-            a.setGravity(false);
-            a.setInvulnerable(true);
-        });
-        Material wool = team == RED ? Material.RED_WOOL : Material.BLUE_WOOL;
-        stand.setHelmet(new ItemStack(wool));
-        return stand;
+    public void addVote(Team team, UUID playerId) {
+        votes.get(team).merge(playerId, 1, Integer::sum);
     }
 
-    private void handleDroppedFlags(Player player, CtfPlayer ctfPlayer) {
-        long now = System.currentTimeMillis();
-        Iterator<Map.Entry<Team, DroppedFlag>> iter = droppedFlags.entrySet().iterator();
-
-        while (iter.hasNext()) {
-            Map.Entry<Team, DroppedFlag> entry = iter.next();
-            DroppedFlag df = entry.getValue();
-            double radius = 2.0;
-
-            int remaining = (int) Math.max(0, 20 - (now - df.dropTime) / 1000);
-            if (df.stand != null)
-                df.stand.customName(MessageUtil.filterMessage("<primary>Flag returns in " + remaining + "s"));
-
-            if (now - df.dropTime >= 20_000) {
-                if (df.stand != null) df.stand.remove();
-                gameFlags.get(df.team).setStolen(false);
-                iter.remove();
-                Bukkit.broadcast(MessageUtil.filterMessage("<gray>The " + df.team + " flag returned to base!"));
-                continue;
-            }
-
-            if (player.getLocation().distance(df.location) <= radius) {
-                if (ctfPlayer.getTeam() == df.team) {
-                    if (df.stand != null) df.stand.remove();
-                    gameFlags.get(df.team).setStolen(false);
-                    iter.remove();
-                    player.sendActionBar(MessageUtil.filterMessage("<primary>You returned your flag!"));
-                } else if (!ctfPlayer.isHasFlag()) {
-                    if (df.stand != null) df.stand.remove();
-                    ctfPlayer.setHasFlag(true);
-                    gameFlags.get(df.team).setStolen(true);
-                    iter.remove();
-                    player.sendActionBar(MessageUtil.filterMessage("<primary>You picked up the flag!"));
-                    Bukkit.broadcast(MessageUtil.filterMessage("<gray>" + player.getName() + " has stolen the " + df.team + " flag!"));
+    private void pickCaptains() {
+        for (Team team : List.of(BLUE, RED)) {
+            Map<UUID, Integer> teamVotes = votes.get(team);
+            if (teamVotes == null || teamVotes.isEmpty()) continue;
+            UUID winner = teamVotes.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(null);
+            if (winner != null) {
+                Player captain = Bukkit.getPlayer(winner);
+                if (captain != null) {
+                    CtfPlayer.loadOrCreatePlayerModelAsync(captain)
+                            .thenAccept(model -> {
+                                CtfPlayer.get(captain.getUniqueId(), model).setCaptain(true);
+                                for (CtfPlayer p : this.players) {
+                                    if (p.getTeam() == Team.NONE) continue;
+                                    Bukkit.getScheduler().runTask(Main.getInstance(), () ->
+                                            p.getPlayer().sendMessage(MessageUtil.filterMessage(
+                                                    "<primary><bold>🏆 " + captain.getName() +
+                                                            "<!bold> has been chosen as captain for team <bold>" + team
+                                            )));
+                                }
+                                Bukkit.getScheduler().runTask(Main.getInstance(), () ->
+                                        captain.sendMessage(
+                                                MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
+                                        ));
+                                CtfFlag.giveToPlayer(CtfPlayer.get(captain.getUniqueId(), model));
+                            }).exceptionally(ex -> {
+                                ex.printStackTrace();
+                                return null;
+                            });
                 }
             }
-
-            this.spawnCircleParticles(df.location, df.team);
         }
     }
 
-    private void spawnCircleParticles(Location loc, Team team) {
-        int points = 20;
-        double radius = 2.0;
-        Color color = team == RED ? Color.RED : Color.BLUE;
-        Particle.DustOptions dust = new Particle.DustOptions(color, 1.0f);
-        for (int i = 0; i < points; i++) {
-            double angle = 2 * Math.PI * i / points;
-            double x = Math.cos(angle) * radius;
-            double z = Math.sin(angle) * radius;
-            loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(x, 0.1, z), 1, dust);
+    // ===== Voting Menu =====
+    private void openVoteMenu(CtfPlayer ctfPlayer) {
+        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Vote your captain"));
+        builder.withSize(27);
+
+        Player player = ctfPlayer.getPlayer();
+        List<Player> teamMates = this.players.stream()
+                .filter(p -> p.getTeam() == ctfPlayer.getTeam())
+                .map(CtfPlayer::getPlayer).toList();
+
+        for (int i = 0; i < teamMates.size(); i++) {
+            Player mate = teamMates.get(i);
+            final UUID mateId = mate.getUniqueId();
+            final String mateName = mate.getName();
+
+            GuiButton button = GuiButton.builder()
+                    .withMaterial(Material.PLAYER_HEAD)
+                    .withName(MessageUtil.filterMessage("<primary>" + mateName))
+                    .withLore(MessageUtil.filterMessage("<gray>Click to vote for your team captain"))
+                    .withClickEvent((g, p, c) -> {
+                        Main.getInstance().getGame().addVote(ctfPlayer.getTeam(), mateId);
+                        p.closeInventory();
+                        p.sendMessage(MessageUtil.filterMessage("<gray>You voted for <primary>" + mateName));
+                    })
+                    .build();
+
+            builder.withButton(i, button);
         }
+        builder.withFiller(GuiButton.getFiller());
+        Gui gui = builder.build();
+        gui.register();
+        gui.open(player.getPlayer());
     }
 
+    // ===== Flag Display & Holograms =====
     private void showFlag() {
         if (gameFlags.isEmpty()) return;
         for (Map.Entry<Team, CtfFlag> entry : gameFlags.entrySet()) {
@@ -265,7 +300,7 @@ public class CtfGame {
                 for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5.0, 5.0, 5.0)) {
                     if (e instanceof ArmorStand as && as.getCustomName() != null &&
                             as.getCustomName().startsWith(hologramPrefix)) {
-                        if (flag.getLocation() == null || as.getLocation().distance(flag.getLocation()) > 1.5)
+                        if (flag.isStolen() || flag.getLocation() == null || as.getLocation().distance(flag.getLocation()) > 1.5)
                             as.remove();
                     }
                 }
@@ -359,113 +394,102 @@ public class CtfGame {
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), this::showFlag, 1L);
     }
 
-    public void start() {
-        if (status == GameStatus.STARTED) return;
-        this.setStatus(GameStatus.STARTED);
-        this.assignTeams();
-        votes.put(BLUE, new HashMap<>());
-        votes.put(RED, new HashMap<>());
-        for (CtfPlayer ctfPlayer : this.players) {
-            ctfPlayer.getScoreboard().create(ctfPlayer.getPlayer(), this);
-            this.openVoteMenu(ctfPlayer);
+    // ===== Dropped Flag Handling =====
+    private void handleAllDroppedFlags() {
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<Team, DroppedFlag>> iter = droppedFlags.entrySet().iterator();
+
+        while (iter.hasNext()) {
+            Map.Entry<Team, DroppedFlag> entry = iter.next();
+            DroppedFlag df = entry.getValue();
+
+            int remaining = (int) Math.max(0, 20 - (now - df.dropTime) / 1000);
+            if (df.stand != null)
+                df.stand.customName(MessageUtil.filterMessage("<primary>Flag returns in " + remaining + "s"));
+
+            if (now - df.dropTime >= 20_000) {
+                if (df.stand != null) df.stand.remove();
+                gameFlags.get(df.team).setStolen(false);
+                gameFlags.get(df.team).setDropped(false);
+                iter.remove();
+                Bukkit.broadcast(MessageUtil.filterMessage("<gray>The " + df.team + " flag returned to base!"));
+                this.respawnFlagHologram(gameFlags.get(df.team), df.team);
+                continue;
+            }
+
+            if (gameFlags.get(df.team).isDropped())
+                this.spawnCircleParticles(df.location, df.team);
         }
-        Main.getInstance().getScheduler().runTaskLater(Main.getInstance(), this::pickCaptains, 20 * 15);
     }
 
-    public void stop() {
-        Bukkit.getScoreboardManager().getMainScoreboard().getTeams().stream()
-                .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
-                .forEach(org.bukkit.scoreboard.Team::unregister);
+    private void handleDroppedFlags(Player player, CtfPlayer ctfPlayer) {
+        double radius = 2.0;
+        Iterator<Map.Entry<Team, DroppedFlag>> iter = droppedFlags.entrySet().iterator();
 
-        for (CtfPlayer ctfPlayer : this.players) {
-            ctfPlayer.getScoreboard().remove(ctfPlayer.getPlayer(), this);
-        }
-    }
+        while (iter.hasNext()) {
+            Map.Entry<Team, DroppedFlag> entry = iter.next();
+            DroppedFlag df = entry.getValue();
 
-    private void openVoteMenu(CtfPlayer ctfPlayer) {
-        Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Vote your captain"));
-        builder.withSize(27);
-
-        Player player = ctfPlayer.getPlayer();
-        List<Player> teamMates = this.players.stream()
-                .filter(p -> p.getTeam() == ctfPlayer.getTeam())
-                .map(CtfPlayer::getPlayer).toList();
-
-        for (int i = 0; i < teamMates.size(); i++) {
-            Player mate = teamMates.get(i);
-            final UUID mateId = mate.getUniqueId();
-            final String mateName = mate.getName();
-
-            GuiButton button = GuiButton.builder()
-                    .withMaterial(Material.PLAYER_HEAD)
-                    .withName(MessageUtil.filterMessage("<primary>" + mateName))
-                    .withLore(MessageUtil.filterMessage("<gray>Click to vote for your team captain"))
-                    .withClickEvent((g, p, c) -> {
-                        Main.getInstance().getGame().addVote(ctfPlayer.getTeam(), mateId);
-                        p.closeInventory();
-                        p.sendMessage(MessageUtil.filterMessage("<gray>You voted for <primary>" + mateName));
-                    })
-                    .build();
-
-            builder.withButton(i, button);
-        }
-        builder.withFiller(GuiButton.getFiller());
-        Gui gui = builder.build();
-        gui.register();
-        gui.open(player.getPlayer());
-    }
-
-    public void addVote(Team team, UUID playerId) {
-        votes.get(team).merge(playerId, 1, Integer::sum);
-    }
-
-    private void pickCaptains() {
-        for (Team team : List.of(BLUE, RED)) {
-            Map<UUID, Integer> teamVotes = votes.get(team);
-            if (teamVotes == null || teamVotes.isEmpty()) continue;
-            UUID winner = teamVotes.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .map(Map.Entry::getKey)
-                    .orElse(null);
-            if (winner != null) {
-                Player captain = Bukkit.getPlayer(winner);
-                if (captain != null) {
-                    CtfPlayer.loadOrCreatePlayerModelAsync(captain)
-                            .thenAccept(model -> {
-                                CtfPlayer.get(captain.getUniqueId(), model).setCaptain(true);
-                                for (CtfPlayer p : this.players) {
-                                    if (p.getTeam() == Team.NONE) continue;
-                                    Bukkit.getScheduler().runTask(Main.getInstance(), () ->
-                                            p.getPlayer().sendMessage(MessageUtil.filterMessage(
-                                                    "<primary><bold>🏆 " + captain.getName() +
-                                                            "<!bold> has been chosen as captain for team <bold>" + team
-                                            )));
-                                }
-                                Bukkit.getScheduler().runTask(Main.getInstance(), () ->
-                                        captain.sendMessage(
-                                                MessageUtil.filterMessage("<gray><bold>🎖 <!bold>You are now the captain of team <bold>" + team + "!")
-                                        ));
-                                CtfFlag.giveToPlayer(CtfPlayer.get(captain.getUniqueId(), model));
-                            }).exceptionally(ex -> {
-                                ex.printStackTrace();
-                                return null;
-                            });
+            if (player.getLocation().distance(df.location) <= radius) {
+                if (ctfPlayer.getTeam() == df.team) {
+                    if (df.stand != null) df.stand.remove();
+                    gameFlags.get(df.team).setStolen(false);
+                    gameFlags.get(df.team).setDropped(false);
+                    iter.remove();
+                    player.sendActionBar(MessageUtil.filterMessage("<primary>You returned your flag!"));
+                    this.respawnFlagHologram(gameFlags.get(df.team), df.team);
+                } else if (!ctfPlayer.isHasFlag()) {
+                    if (df.stand != null) df.stand.remove();
+                    ctfPlayer.setHasFlag(true);
+                    gameFlags.get(df.team).setStolen(true);
+                    gameFlags.get(df.team).setDropped(false);
+                    iter.remove();
+                    player.sendActionBar(MessageUtil.filterMessage("<primary>You picked up the flag!"));
+                    Bukkit.broadcast(MessageUtil.filterMessage("<gray>" + player.getName() + " has stolen the " + df.team + " flag!"));
                 }
             }
         }
     }
 
-    private void assignTeams() {
-        int blueCount = 0, redCount = 0;
-        for (CtfPlayer player : this.players) {
-            if (player.getTeam() != Team.NONE) continue;
-            if (blueCount <= redCount) {
-                player.setTeam(BLUE);
-                blueCount++;
-            } else {
-                player.setTeam(RED);
-                redCount++;
-            }
+    private void spawnCircleParticles(Location loc, Team team) {
+        int points = 20;
+        double radius = 2.0;
+        Color color = team == RED ? Color.RED : Color.BLUE;
+        Particle.DustOptions dust = new Particle.DustOptions(color, 1.0f);
+        for (int i = 0; i < points; i++) {
+            double angle = 2 * Math.PI * i / points;
+            double x = Math.cos(angle) * radius;
+            double z = Math.sin(angle) * radius;
+            loc.getWorld().spawnParticle(Particle.DUST, loc.clone().add(x, 0.1, z), 1, dust);
+        }
+    }
+
+    private ArmorStand spawnFlagStand(Location loc, Team team) {
+        ArmorStand stand = loc.getWorld().spawn(loc.clone().add(0, 0.2, 0), ArmorStand.class, a -> {
+            a.setInvisible(true);
+            a.setMarker(true);
+            a.setCustomNameVisible(true);
+            a.customName(MessageUtil.filterMessage("<primary>Flag here!"));
+            a.setGravity(false);
+            a.setInvulnerable(true);
+        });
+        Material wool = team == RED ? Material.RED_WOOL : Material.BLUE_WOOL;
+        stand.setHelmet(new ItemStack(wool));
+        return stand;
+    }
+
+    // ===== Dropped Flag Inner Class =====
+    public class DroppedFlag {
+        Location location;
+        Team team;
+        long dropTime;
+        ArmorStand stand;
+
+        public DroppedFlag(Location loc, Team team) {
+            this.location = loc;
+            this.team = team;
+            this.dropTime = System.currentTimeMillis();
+            this.stand = spawnFlagStand(loc, team);
         }
     }
 }

@@ -47,8 +47,8 @@ public class PlayerRespawnListener implements Listener {
                                     player.showTitle(Title.title(
                                             MessageUtil.filterMessage("<primary>" + counter),
                                             Component.empty(), Title.Times.times(Duration.ZERO, Duration.ofSeconds(1), Duration.ZERO)));
-                                else if (counter > 3)
-                                    player.sendActionBar(MessageUtil.filterMessage("<primary>Aftellen: <bold>" + counter + "s<!bold>"));
+
+                                player.sendActionBar(MessageUtil.filterMessage("<primary>Aftellen: <bold>" + counter + "s<!bold>"));
 
                                 if (counter <= 0) {
                                     player.setGameMode(GameMode.SURVIVAL);

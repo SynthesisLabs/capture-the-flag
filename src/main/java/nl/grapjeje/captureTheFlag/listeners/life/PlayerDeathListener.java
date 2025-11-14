@@ -74,6 +74,7 @@ public class PlayerDeathListener implements Listener {
                             if (game == null) return;
 
                             CtfGame.DroppedFlag df = game.new DroppedFlag(dropLoc, flagTeam);
+                            game.getGameFlags().get(flagTeam).setDropped(true);
                             game.getDroppedFlags().put(flagTeam, df);
 
                             Bukkit.broadcast(MessageUtil.filterMessage("<gray>The <bold>" + flagTeam + "<!bold><gray> flag was dropped!"));
