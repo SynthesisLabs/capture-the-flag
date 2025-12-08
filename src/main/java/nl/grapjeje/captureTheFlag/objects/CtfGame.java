@@ -76,9 +76,9 @@ public class CtfGame {
                 .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
                 .forEach(org.bukkit.scoreboard.Team::unregister);
 
-        for (CtfPlayer ctfPlayer : this.players) {
-            ctfPlayer.getScoreboard().remove(ctfPlayer.getPlayer(), this);
-        }
+//        for (CtfPlayer ctfPlayer : this.players) {
+//            ctfPlayer.getScoreboard().remove(ctfPlayer.getPlayer(), this);
+//        }
     }
 
     private void tick() {
