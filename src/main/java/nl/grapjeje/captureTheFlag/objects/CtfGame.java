@@ -16,12 +16,8 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +29,7 @@ import static nl.grapjeje.captureTheFlag.enums.Team.RED;
 public class CtfGame {
     private final List<CtfPlayer> players = new ArrayList<>();
     @Setter
-    private GameStatus status = GameStatus.STOPPED;
+    private GameStatus status = GameStatus.WAITING;
     private final Map<Team, CtfFlag> gameFlags = new HashMap<>();
     private final double flagRadius = 2;
     private final Map<Team, Integer> points = new HashMap<>();
@@ -72,6 +68,7 @@ public class CtfGame {
     }
 
     public void stop() {
+        this.setStatus(GameStatus.ENDED);
         Bukkit.getScoreboardManager().getMainScoreboard().getTeams().stream()
                 .filter(team -> team.getName().equalsIgnoreCase("RED") || team.getName().equalsIgnoreCase("BLUE"))
                 .forEach(org.bukkit.scoreboard.Team::unregister);

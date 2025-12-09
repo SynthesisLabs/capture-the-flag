@@ -39,6 +39,9 @@ public final class Main extends JavaPlugin {
         // Register Storm
         framework.initializeStorm(StormDatabase.getInstance().getStorm());
         this.registerModels();
+
+        // Start game server loop
+        new CtfServer();
     }
 
     // All the storm models that needs to be registered
