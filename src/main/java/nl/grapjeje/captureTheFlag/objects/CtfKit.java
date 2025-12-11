@@ -8,6 +8,7 @@ import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.core.gui.Gui;
 import nl.grapjeje.core.gui.GuiButton;
+import nl.grapjeje.core.items.Item;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
 import nl.grapjeje.core.text.MessageUtil;
@@ -59,21 +60,23 @@ public class CtfKit {
 
         player.getPlayer().closeInventory();
         player.getPlayer().getInventory().clear();
-        player.getPlayer().getActivePotionEffects().clear();
+        player.getPlayer().getActivePotionEffects().forEach(effect ->
+                player.getPlayer().removePotionEffect(effect.getType())
+        );
 
         switch (kit) {
             case SCOUT -> {
                 giveItems(
-                        new ItemStack(Material.IRON_SWORD),
-                        new ItemStack(Material.BOW),
-                        new ItemStack(Material.ARROW, 16)
+                        Item.from(Material.IRON_SWORD).toBukkit(),
+                        Item.from(Material.BOW).toBukkit(),
+                        Item.from(Material.ARROW).toBukkit()
                 );
 
                 giveArmor(
-                        new ItemStack(Material.LEATHER_HELMET),
-                        new ItemStack(Material.LEATHER_CHESTPLATE),
-                        new ItemStack(Material.LEATHER_LEGGINGS),
-                        new ItemStack(Material.LEATHER_BOOTS)
+                        Item.from(Material.LEATHER_HELMET).toBukkit(),
+                        Item.from(Material.LEATHER_CHESTPLATE).toBukkit(),
+                        Item.from(Material.LEATHER_LEGGINGS).toBukkit(),
+                        Item.from(Material.LEATHER_BOOTS).toBukkit()
                 );
 
                 giveEffects(
@@ -82,30 +85,30 @@ public class CtfKit {
             }
             case SOLDIER -> {
                 giveItems(
-                        new ItemStack(Material.IRON_SWORD),
-                        new ItemStack(Material.BOW),
-                        new ItemStack(Material.ARROW, 24)
+                        Item.from(Material.IRON_SWORD).toBukkit(),
+                        Item.from(Material.BOW).toBukkit(),
+                        Item.from(Material.ARROW).toBukkit()
                 );
 
                 giveArmor(
-                        new ItemStack(Material.IRON_HELMET),
-                        new ItemStack(Material.IRON_CHESTPLATE),
-                        new ItemStack(Material.IRON_LEGGINGS),
-                        new ItemStack(Material.IRON_BOOTS)
+                        Item.from(Material.IRON_HELMET).toBukkit(),
+                        Item.from(Material.IRON_CHESTPLATE).toBukkit(),
+                        Item.from(Material.IRON_LEGGINGS).toBukkit(),
+                        Item.from(Material.IRON_BOOTS).toBukkit()
                 );
             }
 
             case HEAVY -> {
                 giveItems(
-                        new ItemStack(Material.IRON_AXE),
-                        new ItemStack(Material.SHIELD)
+                        Item.from(Material.IRON_AXE).toBukkit(),
+                        Item.from(Material.SHIELD).toBukkit()
                 );
 
                 giveArmor(
-                        new ItemStack(Material.IRON_HELMET),
-                        new ItemStack(Material.IRON_CHESTPLATE),
-                        new ItemStack(Material.IRON_LEGGINGS),
-                        new ItemStack(Material.IRON_BOOTS)
+                        Item.from(Material.IRON_HELMET).toBukkit(),
+                        Item.from(Material.IRON_CHESTPLATE).toBukkit(),
+                        Item.from(Material.IRON_LEGGINGS).toBukkit(),
+                        Item.from(Material.IRON_BOOTS).toBukkit()
                 );
 
                 giveEffects(
@@ -116,15 +119,15 @@ public class CtfKit {
 
             case SNIPER -> {
                 giveItems(
-                        new ItemStack(Material.BOW),
-                        new ItemStack(Material.ARROW, 64)
+                        Item.from(Material.BOW).toBukkit(),
+                        Item.from(Material.ARROW).toBukkit()
                 );
 
                 giveArmor(
-                        new ItemStack(Material.LEATHER_HELMET),
-                        new ItemStack(Material.LEATHER_CHESTPLATE),
-                        new ItemStack(Material.LEATHER_LEGGINGS),
-                        new ItemStack(Material.LEATHER_BOOTS)
+                        Item.from(Material.LEATHER_HELMET).toBukkit(),
+                        Item.from(Material.LEATHER_CHESTPLATE).toBukkit(),
+                        Item.from(Material.LEATHER_LEGGINGS).toBukkit(),
+                        Item.from(Material.LEATHER_BOOTS).toBukkit()
                 );
 
                 giveEffects(
@@ -134,14 +137,14 @@ public class CtfKit {
 
             case BESERKER -> {
                 giveItems(
-                        new ItemStack(Material.IRON_AXE)
+                        Item.from(Material.IRON_AXE).toBukkit()
                 );
 
                 giveArmor(
-                        new ItemStack(Material.CHAINMAIL_HELMET),
-                        new ItemStack(Material.CHAINMAIL_CHESTPLATE),
-                        new ItemStack(Material.CHAINMAIL_LEGGINGS),
-                        new ItemStack(Material.CHAINMAIL_BOOTS)
+                        Item.from(Material.CHAINMAIL_HELMET).toBukkit(),
+                        Item.from(Material.CHAINMAIL_CHESTPLATE).toBukkit(),
+                        Item.from(Material.CHAINMAIL_LEGGINGS).toBukkit(),
+                        Item.from(Material.CHAINMAIL_BOOTS).toBukkit()
                 );
 
                 giveEffects(
