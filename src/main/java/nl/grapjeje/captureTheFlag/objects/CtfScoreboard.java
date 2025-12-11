@@ -20,6 +20,7 @@ public class CtfScoreboard {
     private Player player;
     private CtfGame game;
     private BossBar bossBar;
+    private CtfFlagBar flagBar;
     private int taskId = -1;
 
     CtfScoreboard(UUID uuid) {
@@ -62,6 +63,8 @@ public class CtfScoreboard {
         }
         player.setScoreboard(mainBoard);
         
+        this.flagBar = new CtfFlagBar(player, game);
+        
         int bluePoints = game.getPoints().getOrDefault(Team.BLUE, 0);
         int redPoints = game.getPoints().getOrDefault(Team.RED, 0);
 
@@ -89,6 +92,10 @@ public class CtfScoreboard {
         bossBar.setTitle(title);
         bossBar.setColor(getBarColor(bluePoints, redPoints));
         bossBar.setProgress(getBarProgress(bluePoints, redPoints));
+        
+        if (flagBar != null) {
+            flagBar.update();
+        }
     }
 
     public void remove(Player player) {
@@ -107,6 +114,12 @@ public class CtfScoreboard {
             bossBar.removeAll();
             bossBar = null;
         }
+        
+        if (flagBar != null) {
+            flagBar.remove();
+            flagBar = null;
+        }
+        
         player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
 

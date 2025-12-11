@@ -7,7 +7,6 @@ import lombok.Setter;
 import nl.grapjeje.captureTheFlag.enums.Kit;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.models.PlayerModel;
-import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.Main;
 import nl.grapjeje.core.StormDatabase;
 import nl.grapjeje.core.exeptions.PlayerNotFoundException;
