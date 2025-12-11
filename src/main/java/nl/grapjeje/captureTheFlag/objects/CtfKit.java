@@ -65,8 +65,8 @@ public class CtfKit {
             case SCOUT -> {
                 giveItems(
                         Item.from(Material.IRON_SWORD).toBukkit(),
-                        Item.from(Material.BOW).toBukkit(),
-                        Item.from(Material.ARROW).toBukkit()
+                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
                 giveArmor(
@@ -83,8 +83,8 @@ public class CtfKit {
             case SOLDIER -> {
                 giveItems(
                         Item.from(Material.IRON_SWORD).toBukkit(),
-                        Item.from(Material.BOW).toBukkit(),
-                        Item.from(Material.ARROW).toBukkit()
+                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
                 giveArmor(
@@ -116,8 +116,8 @@ public class CtfKit {
 
             case SNIPER -> {
                 giveItems(
-                        Item.from(Material.BOW).toBukkit(),
-                        Item.from(Material.ARROW).toBukkit()
+                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
                 giveArmor(
