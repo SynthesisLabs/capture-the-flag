@@ -20,6 +20,7 @@ public class PlayerLeaveListener implements Listener {
                 .thenAccept(model -> {
                     CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
                     if (ctfPlayer == null || !Main.getInstance().getGame().getPlayers().contains(ctfPlayer)) return;
+                    ctfPlayer.getScoreboard().remove(player);
                     Main.getInstance().getGame().getPlayers().remove(ctfPlayer);
                 });
     }

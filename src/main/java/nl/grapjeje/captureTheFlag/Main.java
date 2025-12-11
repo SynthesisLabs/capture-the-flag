@@ -60,8 +60,13 @@ public final class Main extends JavaPlugin {
                 }
             }
         }
-
-        // TODO SWEN: Maybe here if the game crashes
+        if (this.getGame() != null) {
+            this.getGame().getPlayers().forEach(ctfPlayer -> {
+                if (ctfPlayer.getPlayer() != null) {
+                    ctfPlayer.getScoreboard().remove(ctfPlayer.getPlayer());
+                }
+            });
+        }
 
         if (!StormDatabase.getInstance().isUsingExternalStorm() && nl.grapjeje.core.Main.getDb() != null)
             nl.grapjeje.core.Main.getDb().close();
