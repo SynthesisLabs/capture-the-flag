@@ -7,7 +7,6 @@ import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
-import nl.grapjeje.core.text.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -56,13 +55,6 @@ public class CtfScoreboard {
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.numberFormat(NumberFormat.blank());
 
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<green>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
-
         obj.getScore("§7 ").setScore(8);
         obj.getScore("§f" + player.getName()).setScore(7);
         obj.getScore("§7  ").setScore(6);
@@ -90,13 +82,6 @@ public class CtfScoreboard {
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         obj.numberFormat(NumberFormat.blank());
 
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(8);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>" + player.getName())).setScore(7);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(6);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<white>Score:")).setScore(5);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<blue>" + bluePoints + "<white> - " + "<red>" + redPoints)).setScore(4);
-//        obj.getScore(MessageUtil.filterMessageStringLegacy("<gray>")).setScore(3);
-
         obj.getScore("§7 ").setScore(8);
         obj.getScore("§f" + player.getName()).setScore(7);
         obj.getScore("§7  ").setScore(6);
@@ -105,11 +90,13 @@ public class CtfScoreboard {
         obj.getScore("§7   ").setScore(3);
     }
 
-    public void remove(Player player, CtfGame game) {
-        if (player == null || game == null) return;
-        Objective board = player.getScoreboard().getObjective(OBJECTIVE_NAME);
-        if(board != null) board.unregister();
-    }
+//    public void remove(Player player) {
+//        if (player == null) return;
+//        Objective board = player.getScoreboard().getObjective(OBJECTIVE_NAME);
+//        if(board != null) {
+//            board.getScore(player).resetScore();
+//        }
+//    }
 
     public void tick() {
         update();
