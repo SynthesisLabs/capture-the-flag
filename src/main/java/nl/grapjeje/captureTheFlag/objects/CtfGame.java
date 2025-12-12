@@ -21,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static nl.grapjeje.captureTheFlag.enums.Team.BLUE;
 import static nl.grapjeje.captureTheFlag.enums.Team.RED;
@@ -266,8 +267,13 @@ public class CtfGame {
 
     // ===== Voting Menu =====
     private void openVoteMenu(CtfPlayer ctfPlayer) {
+        AtomicBoolean chosen = new AtomicBoolean(false);
         Gui.Builder builder = Gui.builder(InventoryType.CHEST, Component.text("Vote your captain"));
         builder.withSize(27);
+        builder.withCloseHandler((e) -> {
+            if (chosen.get()) return;
+            this.openVoteMenu(ctfPlayer);
+        });
 
         Player player = ctfPlayer.getPlayer();
         List<Player> teamMates = this.players.stream()
@@ -285,6 +291,7 @@ public class CtfGame {
                     .withLore(MessageUtil.filterMessage("<gray>Click to vote for your team captain"))
                     .withClickEvent((g, p, c) -> {
                         Main.getInstance().getGame().addVote(ctfPlayer.getTeam(), mateId);
+                        chosen.set(true);
                         p.closeInventory();
                         p.sendMessage(MessageUtil.filterMessage("<gray>You voted for <primary>" + mateName));
                     })
