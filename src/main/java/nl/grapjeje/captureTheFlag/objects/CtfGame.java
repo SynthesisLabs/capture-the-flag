@@ -342,7 +342,7 @@ public class CtfGame {
                 double bob = Math.sin(time) * 0.12;
                 Location hologramLoc = baseLoc.clone().add(0, bob, 0);
                 String hologramName = "ctf_flag_hologram_" + team.name() + "_" +
-                        Math.round(baseLoc.getX()) + "_" + Math.round(baseLoc.getZ());
+                        baseLoc.getBlockX() + "_" + baseLoc.getBlockZ();
 
                 Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                     for (Location loc : ring)
