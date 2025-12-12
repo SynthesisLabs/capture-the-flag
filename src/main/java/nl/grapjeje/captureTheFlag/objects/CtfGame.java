@@ -30,12 +30,15 @@ public class CtfGame {
     private final List<CtfPlayer> players = new ArrayList<>();
     @Setter
     private GameStatus status = GameStatus.WAITING;
+    @Getter
     private final Map<Team, CtfFlag> gameFlags = new HashMap<>();
     private final double flagRadius = 2;
     private final Map<Team, Integer> points = new HashMap<>();
     private final Map<Team, DroppedFlag> droppedFlags = new HashMap<>();
     private final Map<UUID, Long> captureProgress = new HashMap<>();
     private final Map<Team, Map<UUID, Integer>> votes = new HashMap<>();
+
+    private boolean tpedToFlag = false;
 
     public CtfGame() {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -86,6 +89,10 @@ public class CtfGame {
         final double radius = 3.0;
 
         for (CtfPlayer ctfPlayer : players) {
+            if (!tpedToFlag && this.allFlagsBeenPlaced()) {
+                ctfPlayer.getPlayer().teleport(gameFlags.get(ctfPlayer.getTeam()).getLocation().add(0, 1, 0));
+                tpedToFlag = true;
+            }
             Player player = ctfPlayer.getPlayer();
             UUID uuid = player.getUniqueId();
 
@@ -472,6 +479,14 @@ public class CtfGame {
         Material wool = team == RED ? Material.RED_WOOL : Material.BLUE_WOOL;
         stand.setHelmet(new ItemStack(wool));
         return stand;
+    }
+
+    private boolean allFlagsBeenPlaced() {
+        int count = 0;
+        for (CtfFlag flag : gameFlags.values()) {
+            if (flag.isPlaced()) count++;
+        }
+        return count == 2;
     }
 
     // ===== Dropped Flag Inner Class =====

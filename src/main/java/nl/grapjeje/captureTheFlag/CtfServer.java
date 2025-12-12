@@ -20,7 +20,7 @@ public class CtfServer {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1));
+                .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 10L));
     }
 
     public void tick() {
@@ -32,8 +32,8 @@ public class CtfServer {
             int count = Bukkit.getOnlinePlayers().size();
             if (count < 2) return;
 
-            // If the server has been waitning for one minute, start the game
-            if (waitTime >= 1200) {
+            // If the server has been waiting for one minute, start the game
+            if (waiting && waitTime >= 1200) {
                 waiting = false;
                 CtfGame game = new CtfGame();
                 Main.getInstance().setGame(game);

@@ -4,10 +4,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Team;
+import nl.grapjeje.captureTheFlag.objects.CtfFlag;
+import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -51,9 +54,15 @@ public class PlayerRespawnListener implements Listener {
                                 player.sendActionBar(MessageUtil.filterMessage("<primary>Aftellen: <bold>" + counter + "s<!bold>"));
 
                                 if (counter <= 0) {
+                                    CtfFlag flag = Main.getInstance().getGame().getGameFlags().get(ctfPlayer.getTeam());
+                                    Location flagLoc = flag.getLocation();
+                                    if (flagLoc == null) return;
+                                    player.teleport(flagLoc.add(0, 1, 0));
+
                                     player.setGameMode(GameMode.SURVIVAL);
                                     ctfPlayer.setDeath(false);
                                     this.cancel();
+                                    player.sendActionBar(MessageUtil.filterMessage("<green>Je bent gerespawned!"));
                                 }
                                 counter--;
                             }
