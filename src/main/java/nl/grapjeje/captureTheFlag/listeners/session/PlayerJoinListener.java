@@ -35,6 +35,8 @@ public class PlayerJoinListener implements Listener {
                     player.setGameMode(GameMode.SPECTATOR);
                 });
 
+        player.teleport(player.getWorld().getSpawnLocation());
+
         this.sendJoinMessage(e);
         this.checkForFlagItem(e);
         this.setupGlowing(e);
