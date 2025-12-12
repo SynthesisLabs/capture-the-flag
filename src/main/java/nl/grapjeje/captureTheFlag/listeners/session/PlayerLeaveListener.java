@@ -16,6 +16,9 @@ public class PlayerLeaveListener implements Listener {
 
         this.sendQuitMessage(e);
 
+        // Clear inventory
+        player.getInventory().clear();
+
         CtfPlayer.loadOrCreatePlayerModelAsync(player)
                 .thenAccept(model -> {
                     CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
