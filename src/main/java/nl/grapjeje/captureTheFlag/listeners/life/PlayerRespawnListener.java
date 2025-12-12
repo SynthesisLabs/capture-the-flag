@@ -6,6 +6,7 @@ import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.objects.CtfFlag;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
+import nl.grapjeje.captureTheFlag.objects.CtfKit;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import org.bukkit.Bukkit;
@@ -21,7 +22,7 @@ import java.time.Duration;
 
 public class PlayerRespawnListener implements Listener {
 
-    private final int respawnTimeInSeconds = 7;
+    private final int respawnTimeInSeconds = 5;
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent e) {
@@ -35,6 +36,10 @@ public class PlayerRespawnListener implements Listener {
                         CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
                         boolean inGame = ctfPlayer.getTeam() == Team.RED || ctfPlayer.getTeam() == Team.BLUE;
                         if (!inGame) return;
+
+                        // Re apply kit
+                        CtfKit kit = CtfKit.get(ctfPlayer);
+                        kit.apply(kit.getKit());
 
                         new BukkitRunnable() {
                             int counter = respawnTimeInSeconds;
@@ -57,7 +62,7 @@ public class PlayerRespawnListener implements Listener {
                                     CtfFlag flag = Main.getInstance().getGame().getGameFlags().get(ctfPlayer.getTeam());
                                     Location flagLoc = flag.getLocation();
                                     if (flagLoc == null) return;
-                                    player.teleport(flagLoc.add(0, 1, 0));
+                                    player.teleport(flagLoc);
 
                                     player.setGameMode(GameMode.SURVIVAL);
                                     ctfPlayer.setDeath(false);
@@ -70,5 +75,4 @@ public class PlayerRespawnListener implements Listener {
                     });
         });
     }
-
 }

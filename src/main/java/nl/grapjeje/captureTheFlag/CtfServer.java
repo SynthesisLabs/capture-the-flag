@@ -20,7 +20,7 @@ public class CtfServer {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 10L));
+                .thenRun(() -> Main.getInstance().getScheduler().runTaskTimer(Main.getInstance(), this::tick, 0, 1L));
     }
 
     public void tick() {
@@ -52,6 +52,13 @@ public class CtfServer {
                 this.stopGame(game);
                 return;
             }
+        }
+
+        // Check the number of players online
+        int count = Bukkit.getOnlinePlayers().size();
+        if (count == 0) {
+            this.stopGame(game);
+            return;
         }
 
         // Check if the gametime is over 15 minuten

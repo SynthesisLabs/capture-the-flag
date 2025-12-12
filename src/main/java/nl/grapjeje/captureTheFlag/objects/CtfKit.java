@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffectType;
 @Getter
 public class CtfKit {
     private final CtfPlayer player;
+    private Kit kit;
 
     public static CtfKit get(CtfPlayer player) {
         return Registry.get(
@@ -53,7 +54,8 @@ public class CtfKit {
         gui.open(player.getPlayer());
     }
 
-    private void apply(Kit kit) {
+    public void apply(Kit kit) {
+        this.kit = kit;
 
         player.getPlayer().closeInventory();
         player.getPlayer().getInventory().clear();
@@ -167,6 +169,4 @@ public class CtfKit {
             player.getPlayer().addPotionEffect(effect);
         }
     }
-
-//
 }
