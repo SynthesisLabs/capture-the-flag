@@ -58,10 +58,11 @@ public class CtfFlag {
                 CtfPlayer cp = CtfPlayer.get(player.getUniqueId(), model);
                 Team team = cp.getTeam();
                 Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                    if (team == captainTeam)
+                    if (team == captainTeam) {
+                        CtfKit.get(cp).open();
                         cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gold>Your team-flag has been successfully placed!"));
+                    }
                     else cp.getPlayer().sendMessage(MessageUtil.filterMessage("<gray>The flag of team " + captainTeam.getColorCode() + captainTeam.name() + " <gray>has been successfully placed!"));
-                    CtfKit.get(cp).open();
                 });
             }).exceptionally(ex -> {
                 ex.printStackTrace();
