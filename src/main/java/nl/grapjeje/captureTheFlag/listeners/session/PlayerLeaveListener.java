@@ -3,10 +3,13 @@ package nl.grapjeje.captureTheFlag.listeners.session;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.Objects;
 
 public class PlayerLeaveListener implements Listener {
 
@@ -23,8 +26,10 @@ public class PlayerLeaveListener implements Listener {
                 .thenAccept(model -> {
                     CtfPlayer ctfPlayer = CtfPlayer.get(player.getUniqueId(), model);
                     if (ctfPlayer == null || !Main.getInstance().getGame().getPlayers().contains(ctfPlayer)) return;
-                    ctfPlayer.getScoreboard().remove(player);
                     Main.getInstance().getGame().getPlayers().remove(ctfPlayer);
+                    Objects.requireNonNull(player.getPlayer()).clearActivePotionEffects();
+                    player.getInventory().clear();
+                    ctfPlayer.getScoreboard().remove(player);
                 });
     }
 

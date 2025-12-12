@@ -12,6 +12,7 @@ import nl.grapjeje.core.registry.AutoRegistry;
 import nl.grapjeje.core.registry.Registry;
 import nl.grapjeje.core.text.MessageUtil;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -66,8 +67,8 @@ public class CtfKit {
         switch (kit) {
             case SCOUT -> {
                 giveItems(
-                        Item.from(Material.IRON_SWORD).toBukkit(),
-                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.IRON_SWORD).setEnchantment(Enchantment.SHARPNESS, 1).toBukkit(),
+                        Item.from(Material.BOW).setEnchantment(Enchantment.INFINITY, 1).toBukkit(),
                         Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
@@ -85,7 +86,7 @@ public class CtfKit {
             case SOLDIER -> {
                 giveItems(
                         Item.from(Material.IRON_SWORD).toBukkit(),
-                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.BOW).setEnchantment(Enchantment.INFINITY, 1).toBukkit(),
                         Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
@@ -99,8 +100,7 @@ public class CtfKit {
 
             case HEAVY -> {
                 giveItems(
-                        Item.from(Material.IRON_AXE).toBukkit(),
-                        Item.from(Material.SHIELD).toBukkit()
+                        Item.from(Material.IRON_SWORD).toBukkit()
                 );
 
                 giveArmor(
@@ -118,7 +118,7 @@ public class CtfKit {
 
             case SNIPER -> {
                 giveItems(
-                        Item.from(Material.BOW).setEnchantment(org.bukkit.enchantments.Enchantment.INFINITY, 1).toBukkit(),
+                        Item.from(Material.BOW).setEnchantment(Enchantment.INFINITY, 1).setEnchantment(Enchantment.POWER, 2).toBukkit(),
                         Item.from(Material.ARROW).setAmount(32).toBukkit()
                 );
 
@@ -136,7 +136,7 @@ public class CtfKit {
 
             case BESERKER -> {
                 giveItems(
-                        Item.from(Material.IRON_AXE).toBukkit()
+                        Item.from(Material.IRON_AXE).setEnchantment(Enchantment.SHARPNESS, 1).toBukkit()
                 );
 
                 giveArmor(
@@ -146,9 +146,6 @@ public class CtfKit {
                         Item.from(Material.CHAINMAIL_BOOTS).toBukkit()
                 );
 
-                giveEffects(
-                        new PotionEffect(PotionEffectType.STRENGTH, Integer.MAX_VALUE, 0)
-                );
             }
         }
 

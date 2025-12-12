@@ -47,7 +47,7 @@ public class CtfPlayer {
     private boolean isDeath = false;
 
     @Getter
-    private CtfScoreboard scoreboard;
+    private CtfBossBar scoreboard;
 
     @Setter
     private Team team;
@@ -65,7 +65,7 @@ public class CtfPlayer {
         this.model = model;
         this.setTeam(Team.NONE);
 
-        this.scoreboard = CtfScoreboard.get(uuid);
+        this.scoreboard = CtfBossBar.get(uuid);
     }
 
     public static CtfPlayer get(UUID uuid, PlayerModel model) {

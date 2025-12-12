@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @AutoRegistry
 @Getter
-public class CtfScoreboard {
+public class CtfBossBar {
     private final UUID uuid;
     private Player player;
     private CtfGame game;
@@ -23,7 +23,7 @@ public class CtfScoreboard {
     private CtfFlagBar flagBar;
     private int taskId = -1;
 
-    CtfScoreboard(UUID uuid) {
+    CtfBossBar(UUID uuid) {
         this.uuid = uuid;
 
         this.taskId = Main.getInstance().getScheduler().runTaskTimer(
@@ -34,11 +34,11 @@ public class CtfScoreboard {
         ).getTaskId();
     }
 
-    public static CtfScoreboard get(UUID uuid) {
+    public static CtfBossBar get(UUID uuid) {
         return Registry.get(
-                CtfScoreboard.class,
+                CtfBossBar.class,
                 uuid.toString(),
-                (args) -> new CtfScoreboard((UUID) args[0]),
+                (args) -> new CtfBossBar((UUID) args[0]),
                 uuid
         );
     }
