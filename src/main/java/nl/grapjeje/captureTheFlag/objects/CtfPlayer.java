@@ -56,6 +56,10 @@ public class CtfPlayer {
     @Setter
     private Kit kit;
 
+    @Getter
+    @Setter
+    private Team carriedFlagTeam;
+
     CtfPlayer(UUID uuid, PlayerModel model) {
         this.uuid = uuid;
         this.model = model;

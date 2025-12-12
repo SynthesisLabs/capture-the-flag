@@ -90,7 +90,7 @@ public class CtfGame {
 
         for (CtfPlayer ctfPlayer : players) {
             if (!tpedToFlag && this.allFlagsBeenPlaced()) {
-                ctfPlayer.getPlayer().teleport(gameFlags.get(ctfPlayer.getTeam()).getLocation().add(0, 1, 0));
+                ctfPlayer.getPlayer().teleport(gameFlags.get(ctfPlayer.getTeam()).getLocation());
                 tpedToFlag = true;
             }
             Player player = ctfPlayer.getPlayer();
@@ -124,7 +124,7 @@ public class CtfGame {
                     Location flagLoc = flag.getLocation();
                     if (flagLoc == null || !playerLoc.getWorld().equals(flagLoc.getWorld())) return;
 
-                    // Steal enemy flag
+                    // --- Steal enemy flag ---
                     if (ctfPlayer.getTeam() != team && !ctfPlayer.isHasFlag() && !flag.isStolen()) {
                         if (playerLoc.distance(flagLoc) <= radius) {
                             long now = System.currentTimeMillis();
@@ -141,6 +141,7 @@ public class CtfGame {
                             if (elapsed >= captureTime) {
                                 captureProgress.remove(uuid);
                                 ctfPlayer.setHasFlag(true);
+                                ctfPlayer.setCarriedFlagTeam(team);
                                 flag.setStolen(true);
 
                                 if (flagLoc.getBlock().getType() == Material.BLUE_WOOL || flagLoc.getBlock().getType() == Material.RED_WOOL)
@@ -154,7 +155,7 @@ public class CtfGame {
                         }
                     }
 
-                    // Return own flag / score
+                    // --- Return enemy flag / score ---
                     if (ctfPlayer.isHasFlag() && ctfPlayer.getTeam() == team) {
                         if (playerLoc.distance(flagLoc) <= radius) {
                             long now = System.currentTimeMillis();
@@ -170,9 +171,15 @@ public class CtfGame {
 
                             if (elapsed >= captureTime) {
                                 captureProgress.remove(uuid);
+
+                                Team carriedTeam = ctfPlayer.getCarriedFlagTeam();
+                                CtfFlag carriedFlag = gameFlags.get(carriedTeam);
+
                                 ctfPlayer.setHasFlag(false);
-                                flag.setStolen(false);
-                                flag.setDropped(false);
+                                ctfPlayer.setCarriedFlagTeam(null);
+
+                                carriedFlag.setStolen(false);
+                                carriedFlag.setDropped(false);
                                 player.sendActionBar(MessageUtil.filterMessage("<primary>You returned the flag!"));
 
                                 int teamPoints = points.getOrDefault(ctfPlayer.getTeam(), 0) + 1;
@@ -186,7 +193,9 @@ public class CtfGame {
                                                 "<gray>)"
                                 ));
 
-                                this.respawnFlagHologram(flag, team);
+                                CtfFlag flag2 = gameFlags.get(team);
+
+                                this.respawnFlagHologram(flag2, team);
                                 droppedFlags.remove(team);
                             }
                         } else if (captureProgress.containsKey(uuid)) {
@@ -292,6 +301,7 @@ public class CtfGame {
     // ===== Flag Display & Holograms =====
     private void showFlag() {
         if (gameFlags.isEmpty()) return;
+
         for (Map.Entry<Team, CtfFlag> entry : gameFlags.entrySet()) {
             CtfFlag flag = entry.getValue();
             Team team = entry.getKey();
@@ -300,82 +310,67 @@ public class CtfGame {
 
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 String hologramPrefix = "ctf_flag_hologram_" + team.name() + "_";
-                for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5.0, 5.0, 5.0)) {
-                    if (e instanceof ArmorStand as && as.getCustomName() != null &&
-                            as.getCustomName().startsWith(hologramPrefix)) {
-                        if (flag.isStolen() || flag.getLocation() == null || as.getLocation().distance(flag.getLocation()) > 1.5)
-                            as.remove();
+                for (Entity e : baseLoc.getWorld().getNearbyEntities(baseLoc, 5, 5, 5)) {
+                    if (e instanceof ArmorStand as && as.getCustomName() != null
+                            && as.getCustomName().startsWith(hologramPrefix)) {
+                        if (flag.isStolen()) as.remove();
                     }
                 }
-            });
 
-            Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
-                final int points = 35;
-                final double cx = baseLoc.getX();
-                final double cy = baseLoc.getY();
-                final double cz = baseLoc.getZ();
+                int points = 35;
+                double cx = baseLoc.getX();
+                double cy = baseLoc.getY();
+                double cz = baseLoc.getZ();
+
                 List<Location> ring = new ArrayList<>(points);
                 for (int i = 0; i < points; i++) {
                     double angle = 2 * Math.PI * i / points;
-                    double x = Math.cos(angle) * flagRadius;
-                    double z = Math.sin(angle) * flagRadius;
-                    ring.add(new Location(baseLoc.getWorld(), cx + x, cy, cz + z));
+                    ring.add(new Location(baseLoc.getWorld(),
+                            cx + Math.cos(angle) * flagRadius,
+                            cy,
+                            cz + Math.sin(angle) * flagRadius));
                 }
-                Color color;
-                Material woolType;
-                switch (team) {
-                    case BLUE -> {
-                        color = Color.fromRGB(0, 150, 255);
-                        woolType = Material.BLUE_WOOL;
-                    }
-                    case RED -> {
-                        color = Color.fromRGB(255, 50, 50);
-                        woolType = Material.RED_WOOL;
-                    }
-                    default -> {
-                        color = Color.fromRGB(180, 180, 180);
-                        woolType = Material.WHITE_WOOL;
-                    }
+
+                for (Location loc : ring) {
+                    loc.getWorld().spawnParticle(Particle.DUST, loc, 1,
+                            new Particle.DustOptions(team == Team.RED ? Color.RED : Color.BLUE, 1.0f));
                 }
-                Particle.DustOptions dust = new Particle.DustOptions(color, 1.0f);
-                double time = System.currentTimeMillis() / 400.0;
-                double bob = Math.sin(time) * 0.12;
-                Location hologramLoc = baseLoc.clone().add(0, bob, 0);
-                String hologramName = "ctf_flag_hologram_" + team.name() + "_" +
-                        baseLoc.getBlockX() + "_" + baseLoc.getBlockZ();
 
-                Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
-                    for (Location loc : ring)
-                        loc.getWorld().spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0, dust);
+                if (!flag.isStolen()) {
+                    Location hologramLoc = baseLoc.clone().add(0, Math.sin(System.currentTimeMillis()/400D)*0.12, 0);
 
-                    if (!flag.isStolen()) {
-                        ArmorStand existing = null;
-                        for (Entity e : hologramLoc.getWorld().getNearbyEntities(hologramLoc, 1.0, 1.0, 1.0)) {
-                            if (e instanceof ArmorStand as && hologramName.equals(as.getCustomName())) {
-                                existing = as;
-                                break;
-                            }
-                        }
-                        if (existing != null && !existing.isDead()) {
-                            existing.teleport(hologramLoc);
-                            ItemStack helmet = existing.getEquipment().getHelmet();
-                            if ((helmet == null || helmet.getType() != woolType) && !flag.isStolen())
-                                existing.setHelmet(new ItemStack(woolType));
-                        } else {
-                            ArmorStand as = (ArmorStand) hologramLoc.getWorld()
-                                    .spawnEntity(hologramLoc, EntityType.ARMOR_STAND, false);
-                            as.setGravity(false);
-                            as.setVisible(false);
-                            as.setMarker(true);
-                            as.setCustomName(hologramName);
-                            as.setCustomNameVisible(false);
-                            if (!flag.isStolen())
-                                as.setHelmet(new ItemStack(woolType));
-                            as.setSilent(true);
-                            as.setInvulnerable(true);
+                    String hologramName = "ctf_flag_hologram_" + team.name() + "_" +
+                            baseLoc.getBlockX() + "_" + baseLoc.getBlockZ();
+
+                    ArmorStand existing = null;
+                    for (Entity e : hologramLoc.getWorld().getNearbyEntities(hologramLoc, 1.2, 1.2, 1.2)) {
+                        if (e instanceof ArmorStand as && hologramName.equals(as.getCustomName())) {
+                            existing = as;
+                            break;
                         }
                     }
-                });
+
+                    Material wool = (team == Team.RED ? Material.RED_WOOL : Material.BLUE_WOOL);
+
+                    if (existing != null) {
+                        existing.teleport(hologramLoc);
+                        if (existing.getEquipment().getHelmet().getType() != wool)
+                            existing.setHelmet(new ItemStack(wool));
+                        return;
+                    }
+
+                    ArmorStand as = (ArmorStand) hologramLoc.getWorld()
+                            .spawnEntity(hologramLoc, EntityType.ARMOR_STAND, false);
+
+                    as.setGravity(false);
+                    as.setVisible(false);
+                    as.setMarker(true);
+                    as.setCustomName(hologramName);
+                    as.setCustomNameVisible(false);
+                    as.setHelmet(new ItemStack(wool));
+                    as.setSilent(true);
+                    as.setInvulnerable(true);
+                }
             });
         }
     }
