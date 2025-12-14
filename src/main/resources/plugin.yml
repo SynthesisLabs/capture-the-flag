@@ -7,8 +7,6 @@ description: A Capture The Flag Plugin
 website: grapjeje.nl
 
 commands:
-  test:
-    description: Test command
   help:
     description: Disabled
   me:
@@ -25,7 +23,5 @@ commands:
     description: Disabled
   w:
     description: Disabled
-  placeflag:
-    description: temp
   kit:
     description: kit select
