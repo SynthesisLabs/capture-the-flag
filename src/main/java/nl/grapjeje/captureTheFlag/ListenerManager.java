@@ -1,6 +1,8 @@
 package nl.grapjeje.captureTheFlag;
 
-import nl.grapjeje.captureTheFlag.listeners.*;
+import nl.grapjeje.captureTheFlag.listeners.CommandListener;
+import nl.grapjeje.captureTheFlag.listeners.PlaceFlagListener;
+import nl.grapjeje.captureTheFlag.listeners.PlayerBreakListener;
 import nl.grapjeje.captureTheFlag.listeners.life.PlayerDeathListener;
 import nl.grapjeje.captureTheFlag.listeners.life.PlayerFoodListener;
 import nl.grapjeje.captureTheFlag.listeners.life.PlayerRespawnListener;

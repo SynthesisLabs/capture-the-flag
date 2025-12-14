@@ -3,7 +3,6 @@ package nl.grapjeje.captureTheFlag.listeners.session;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

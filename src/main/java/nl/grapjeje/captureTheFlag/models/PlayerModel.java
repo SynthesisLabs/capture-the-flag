@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Table(name = "player")

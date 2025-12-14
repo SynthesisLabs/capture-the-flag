@@ -5,7 +5,6 @@ import net.kyori.adventure.title.Title;
 import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.objects.CtfFlag;
-import nl.grapjeje.captureTheFlag.objects.CtfGame;
 import nl.grapjeje.captureTheFlag.objects.CtfKit;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;

@@ -2,7 +2,6 @@ package nl.grapjeje.captureTheFlag;
 
 import nl.grapjeje.captureTheFlag.enums.Team;
 import nl.grapjeje.captureTheFlag.objects.CtfGame;
-import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;

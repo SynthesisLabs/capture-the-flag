@@ -1,9 +1,7 @@
 package nl.grapjeje.captureTheFlag.listeners.session;
 
 import fr.skytasul.glowingentities.GlowingEntities;
-import nl.grapjeje.captureTheFlag.Main;
 import nl.grapjeje.captureTheFlag.objects.CtfFlag;
-import nl.grapjeje.captureTheFlag.objects.CtfKit;
 import nl.grapjeje.captureTheFlag.objects.CtfPlayer;
 import nl.grapjeje.captureTheFlag.utils.MessageUtil;
 import nl.grapjeje.core.GlowUtil;
